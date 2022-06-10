@@ -1,32 +1,29 @@
 ﻿using UnityEngine;
+using DecisionMaking.DecisionMaking.ForwardModel.Goal;
 
 namespace Assets.Scripts.GameManager
 {
     public class CharacterData
     {
-        public int HP { get; set; }
-        public int ShieldHP { get; set; }
-        public int MaxHP { get; set; }
-        public int Mana { get; set; }
-        public int MaxMana { get; set; }
-        public int XP { get; set; }
-        public float Time { get; set; }
-        public int Money { get; set; }
-        public int Level { get; set; }
+        private bool symptoms { get; set; }
+        private bool infected { get; set; }
+        private bool quarantined { get; set; }
+
+        public Goal[] goals { get; set; }
+        public float time { get; set; }
+
+        // may not be needed
+        private Personality personality;
         public GameObject CharacterGameObject { get; private set; }
 
-        public CharacterData(GameObject gameObject)
+        public CharacterData(GameObject gameObject, Goal[] goals)
         {
             this.CharacterGameObject = gameObject;
-            this.HP = 10;
-            this.ShieldHP = 0;
-            this.MaxHP = 10;
-            this.Mana = 0;
-            this.MaxMana = 10;
-            this.Money = 0;
-            this.Time = 0;
-            this.XP = 0;
-            this.Level = 1;
+            this.symptoms = false;
+            this.infected = false;
+            this.quarantined = false;
+            this.goals = goals;
+            this.time = 0;
         }
     }
 }

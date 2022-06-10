@@ -12,24 +12,24 @@ namespace Assets.Scripts
     public class AutonomousCharacter : MonoBehaviour
     {
         //constants
-        public const string SURVIVE_GOAL = "Survive";
-        public const string GAIN_LEVEL_GOAL = "GainXP";
+        public const string DO_TASKS_GOAL = "DoTasks";
+        public const string NONINFECTED_GOAL = "Noninfected";
         public const string BE_QUICK_GOAL = "BeQuick";
-        public const string GET_RICH_GOAL = "GetRich";
-
-        public const string GET_MANA_GOAL = "GetMana";
+        
+        /*public const string GET_RICH_GOAL = "GetRich";
+        public const string GET_MANA_GOAL = "GetMana";*/
 
         public const float DECISION_MAKING_INTERVAL = 200.0f;
         public const float GOAL_CHANING_INTERVAL = 20.0f;
-        public const float RESTING_INTERVAL = 5.0f;
-        public const int REST_HP_RECOVERY = 2;
+        /*public const float RESTING_INTERVAL = 5.0f;
+        public const int REST_HP_RECOVERY = 2;*/
 
         //UI Variables
-        private Text SurviveGoalText;
-        private Text GainXPGoalText;
+        private Text DoTasksGoalText;
+        private Text NoninfectedGoalText;
         private Text BeQuickGoalText;
-        private Text GetRichGoalText;
-        private Text GetManaGoalText;
+        /*private Text GetRichGoalText;
+        private Text GetManaGoalText;*/
         private Text DiscontentmentText;
         private Text TotalProcessingTimeText;
         private Text BestDiscontentmentText;
@@ -41,24 +41,23 @@ namespace Assets.Scripts
         public GameManager.GameManager GameManager { get; private set; }
 
         [Header("Character Settings")]  
-        public bool controlledByPlayer;
         public float controlledSpeed;
 
         [Header("Decision Algorithm Options")]
         public bool GOBActive;
         public bool GOAPActive;
-        public bool MCTSActive;
-        public bool MCTSBiasedActive;
 
         [Header("Character Info")]
         public bool Resting = false;
         public float StopRestTime;
 
         public Goal BeQuickGoal { get; private set; }
-        public Goal SurviveGoal { get; private set; }
-        public Goal GetRichGoal { get; private set; }
-        public Goal GainLevelGoal { get; private set; }
-        public Goal GetManaGoal { get; private set; }
+        public Goal DoTasksGoal { get; private set; }
+        public Goal NoninfectedGoal { get; private set; }
+
+        /*public Goal GetRichGoal { get; private set; }
+        public Goal GetManaGoal { get; private set; }*/
+
         public List<Goal> Goals { get; set; }
         public List<Action> Actions { get; set; }
         public Action CurrentAction { get; private set; }
@@ -68,9 +67,9 @@ namespace Assets.Scripts
         //private fields for internal use only
         private NavMeshAgent agent;
         private float nextUpdateTime = 0.0f;
-        private float previousGold = 0.0f;
+        /*private float previousGold = 0.0f;
         private int previousLevel = 1;
-        private Vector3 previousTarget;
+        private Vector3 previousTarget;*/
 
         //This speed is only a pointer to the NavMeshAgent's speed
         public float maxSpeed {get; private set;}
@@ -89,10 +88,12 @@ namespace Assets.Scripts
 
             // Initializing UI Text
             this.BeQuickGoalText = GameObject.Find("BeQuickGoal").GetComponent<Text>();
-            this.SurviveGoalText = GameObject.Find("SurviveGoal").GetComponent<Text>();
-            this.GainXPGoalText = GameObject.Find("GainXP").GetComponent<Text>();
-            this.GetRichGoalText = GameObject.Find("GetRichGoal").GetComponent<Text>();
-            this.GetManaGoalText = GameObject.Find("GetManaGoal").GetComponent<Text>();
+            this.DoTasksGoalText = GameObject.Find("SurviveGoal").GetComponent<Text>();
+            this.NoninfectedGoalText = GameObject.Find("GainXP").GetComponent<Text>();
+            
+            /*this.GetRichGoalText = GameObject.Find("GetRichGoal").GetComponent<Text>();
+            this.GetManaGoalText = GameObject.Find("GetManaGoal").GetComponent<Text>();*/
+            
             this.DiscontentmentText = GameObject.Find("Discontentment").GetComponent<Text>();
             this.TotalProcessingTimeText = GameObject.Find("ProcessTime").GetComponent<Text>();
             this.BestDiscontentmentText = GameObject.Find("BestDicont").GetComponent<Text>();
@@ -104,17 +105,11 @@ namespace Assets.Scripts
             this.origin = this.transform.position;
             //initialization of the GOB decision making
             //let's start by creating 4 main goals
-            this.SurviveGoal = new Goal(SURVIVE_GOAL, 8f);
+            this.DoTasksGoal = new Goal(DO_TASKS_GOAL, 8f);
 
-            this.GainLevelGoal = new Goal(GAIN_LEVEL_GOAL, 10.0f)
+            this.NoninfectedGoal = new Goal(NONINFECTED_GOAL, 10.0f)
             {
                 ChangeRate = 0.1f
-            };
-
-            this.GetRichGoal = new Goal(GET_RICH_GOAL, 1f)
-            {
-                InsistenceValue = 10.0f,
-                ChangeRate = 0.2f
             };
 
             this.BeQuickGoal = new Goal(BE_QUICK_GOAL, 3f)
@@ -122,55 +117,37 @@ namespace Assets.Scripts
                 ChangeRate = 0.02f
             };
 
-            this.GetManaGoal = new Goal(GET_MANA_GOAL, 1.0f);
+            /*this.GetRichGoal = new Goal(GET_RICH_GOAL, 1f)
+            {
+                InsistenceValue = 10.0f,
+                ChangeRate = 0.2f
+            };
+
+            this.GetManaGoal = new Goal(GET_MANA_GOAL, 1.0f);*/
 
             this.Goals = new List<Goal>();
-            this.Goals.Add(this.SurviveGoal);
+            this.Goals.Add(this.DoTasksGoal);
             this.Goals.Add(this.BeQuickGoal);
-            this.Goals.Add(this.GetRichGoal);
-            this.Goals.Add(this.GainLevelGoal);
-            this.Goals.Add(this.GetManaGoal);
+            this.Goals.Add(this.NoninfectedGoal);
+
+            /*this.Goals.Add(this.GetRichGoal);
+            this.Goals.Add(this.GetManaGoal);*/
 
             //initialize the available actions
             //Uncomment commented actions after you implement them
 
             this.Actions = new List<Action>();
 
-            this.Actions.Add(new LevelUp(this));
-            this.Actions.Add(new ShieldOfFaith(this));
-            this.Actions.Add(new Rest(this));
+            this.Actions.Add(new DoPreventiveMeasures(this));
+            this.Actions.Add(new Test(this));
 
+            //quarantine in a building maybe?
+            this.Actions.Add(new Quarantine(this));
 
-            foreach (var chest in GameObject.FindGameObjectsWithTag("Chest"))
+            foreach (var healthcareCenter in GameObject.FindGameObjectsWithTag("HealthcareCenter"))
             {
-                this.Actions.Add(new PickUpChest(this, chest));
-            }
-
-            foreach (var potion in GameObject.FindGameObjectsWithTag("HealthPotion"))
-            {
-                this.Actions.Add(new GetHealthPotion(this, potion));
-            }
-
-            foreach (var potion in GameObject.FindGameObjectsWithTag("ManaPotion"))
-            {
-                this.Actions.Add(new GetManaPotion(this, potion));
-            }
-
-            foreach (var enemy in GameObject.FindGameObjectsWithTag("Skeleton"))
-            {
-                this.Actions.Add(new SwordAttack(this, enemy));
-                this.Actions.Add(new DivineSmite(this, enemy));
-            }
-
-            foreach (var enemy in GameObject.FindGameObjectsWithTag("Orc"))
-            {
-                this.Actions.Add(new SwordAttack(this, enemy));
-            }
-
-            foreach (var enemy in GameObject.FindGameObjectsWithTag("Dragon"))
-            {
-                this.Actions.Add(new SwordAttack(this, enemy));
-            }
+                this.Actions.Add(new Test(this, healthcareCenter));
+            } 
 
             // Initialization of Decision Making Algorithms
             var worldModel = new CurrentStateWorldModel(GameManager, this.Actions, this.Goals);
@@ -225,11 +202,9 @@ namespace Assets.Scripts
                     this.previousGold = GameManager.characterData.Money;
                 }
 
-                this.SurviveGoalText.text = "Survive: " + this.SurviveGoal.InsistenceValue;
-                this.GainXPGoalText.text = "Gain Level: " + this.GainLevelGoal.InsistenceValue.ToString("F1");
+                this.SurviveGoalText.text = "Do Tasks: " + this.SurviveGoal.InsistenceValue;
+                this.GainXPGoalText.text = "Noninfected: " + this.GainLevelGoal.InsistenceValue.ToString("F1");
                 this.BeQuickGoalText.text = "Be Quick: " + this.BeQuickGoal.InsistenceValue.ToString("F1");
-                this.GetRichGoalText.text = "GetRich: " + this.GetRichGoal.InsistenceValue.ToString("F1");
-                this.GetManaGoalText.text = "Get Mana: " + this.GetManaGoal.InsistenceValue.ToString("F1");
                 this.DiscontentmentText.text = "Discontentment: " + this.CalculateDiscontentment().ToString("F1");
 
                     //To have a new decision lets initialize Decision Making Proccess
