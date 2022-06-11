@@ -1,9 +1,7 @@
-﻿using Assets.Scripts.IAJ.Unity.Utils;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
-using System.IO;
+using Assets.Scripts.Agent;
+using Assets.Scripts.Algorithm.DecisionMaking.ForwardModel;
 
 namespace Assets.Scripts.GameManager
 {
@@ -13,14 +11,12 @@ namespace Assets.Scripts.GameManager
         public const int TIME_LIMIT = 200;
         //public fields, seen by Unity in Editor
 
-        public AutonomousCharacter autonomousCharacter;
-
-        private GameObject character;
 
         [Header("UI Objects")]
         public Text SymptomsText;
         public Text InfectedText;
         public Text QuarantinedText;
+        public Text UsingMaskText;
         public Text GoalsText;
         public Text TimeText;
         public Text DiaryText;
@@ -28,8 +24,15 @@ namespace Assets.Scripts.GameManager
 
         [Header("Enemy Settings")]
         public bool StochasticWorld;
-        public bool SleepingNPCs;
-        public bool BehaviourTreeNPCs;
+
+        [Header("People specs")]
+        public int number;
+        public GameObject personPrefab;
+        public GameObject[] people;
+        public int selfAwarePercentage;
+        public int egocentricPercentage;
+        public int hypochondriacPercentage;
+
 
         //fields
         /*public List<GameObject> chests { get; set; }
@@ -38,7 +41,6 @@ namespace Assets.Scripts.GameManager
         public int maxHpPotions = 0;
         public int maxManaPotions = 0;*/
 
-        public CharacterData characterData { get; private set; }
         public bool WorldChanged { get; set; }
 
         private float nextUpdateTime = 0.0f;
@@ -46,47 +48,47 @@ namespace Assets.Scripts.GameManager
         public bool gameEnded { get; set; } = false;
         public Vector3 initialPosition { get; set; }
 
+
         void Awake()
         {
-            UpdateDisposableObjects();
             this.WorldChanged = false;
-            this.character = this.autonomousCharacter.gameObject;
-            this.characterData = new CharacterData(this.character);
-            this.initialPosition = this.character.transform.position;
+            GeneratePeople(number);
         }
 
         public void Update()
         {
+            PersonData personData = this.people[0].GetComponent<PersonControl>().personData;
 
             if (Time.time > this.nextUpdateTime)
             {
                 this.nextUpdateTime = Time.time + UPDATE_INTERVAL;
-                this.characterData.Time += UPDATE_INTERVAL;
+                personData.time += UPDATE_INTERVAL;
             }
 
-
-            this.SymptomsText.text = "Symptoms: " + this.characterData.symptoms;
-            this.InfectedText.text = "Infected: " + this.characterData.infected;
-            this.QuarantinedText.text = "Quarantined: " + this.characterData.quarantined;
+            //TODO to change when we have multiple agents
+            this.SymptomsText.text = "Symptoms: " + personData.symptoms;
+            this.InfectedText.text = "Infected: " + personData.infected;
+            this.QuarantinedText.text = "Quarantined: " + personData.quarantined;
+            this.UsingMaskText.text = "UsingMask: " + personData.usingMask;
             this.GoalsText.text = "Goals:";
-            this.TimeText.text = "Time: " + this.characterData.time;
+            this.TimeText.text = "Time: " + personData.time;
 
-            foreach(Goal goal in this.characterData.Goals)
-                this.GoalsText.text = this.GoalsText.text + " " + goal.Name;
+            foreach(Goal goal in personData.goals.Values)
+                this.GoalsText.text = this.GoalsText.text + " " + goal.name;
 
-            /*if(this.characterData.HP <= 0 || this.characterData.Time >= TIME_LIMIT)
+            /*if(this.peopleData[0].HP <= 0 || this.peopleData[0].Time >= TIME_LIMIT)
             {
                 this.GameEnd.SetActive(true);
                 this.gameEnded = true;
                 this.GameEnd.GetComponentInChildren<Text>().text = "You Died";
-            }*/
+            }
         }
 
       
         public void GoHealthcareCenter(GameObject healthcareCenter)
         {
           
-            if (healthcareCenter != null && chest.activeSelf && InChestRange(chest))
+            if (healthcareCenter != null && healthcareCenter.activeSelf && InChestRange(healthcareCenter))
             {
                 this.autonomousCharacter.AddToDiary( " I went to  " + healthcareCenter.name + " to test myself");
                 //TODO give out results if positive or negative
@@ -102,7 +104,6 @@ namespace Assets.Scripts.GameManager
      
         public bool InChestRange(GameObject chest)
         {
-
             return this.CheckRange(chest, 16.0f);
         }
 
@@ -121,6 +122,40 @@ namespace Assets.Scripts.GameManager
                 timeElapsed = -1;
                 WorldChanged = true;
             }*/
+        }
+
+        public void GeneratePeople(int number)
+        {
+            int selfAwareAgents = (number*selfAwarePercentage)/100;
+            int egocentricAgents = (number*egocentricPercentage)/100;
+            int hypochondriacAgents = (number*hypochondriacPercentage)/100;
+
+            for(int i = 0; i < number; i++)
+            {
+                GameObject person = Instantiate(personPrefab, new Vector3(i * 2.0f, 0, 0), Quaternion.identity);
+                
+                Personality p = null;
+                //this.initialPosition = this.character.transform.position;
+
+                //self-aware
+                if (i < selfAwareAgents){
+                    person.GetComponent<Renderer>().material.SetColor("_Color", Color.blue);
+                    p = new SelfAwareAgent();
+                }
+                //egocentric
+                else if (i >= selfAwareAgents){
+                    person.GetComponent<Renderer>().material.SetColor("_Color", Color.red);
+                    p = new EgocentricAgent();
+                }
+                //hypochondriac
+                else if (i >= selfAwareAgents + egocentricAgents){
+                    person.GetComponent<Renderer>().material.SetColor("_Color", Color.yellow);
+                    p = new HypochondriacAgent();
+                }
+
+                this.people[i] = person;
+                person.GetComponent<PersonControl>().personData = new PersonData(person, new Goal[0], p);
+            }
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using Assets.Scripts.IAJ.Unity.DecisionMaking.ForwardModel.ForwardModelActions;
-using Assets.Scripts.IAJ.Unity.DecisionMaking.ForwardModel;
+﻿using Assets.Scripts.Algorithm.DecisionMaking.ForwardModel;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -31,18 +30,9 @@ namespace Assets.Scripts.GameManager
             return new FutureStateWorldModel(this);
         }
 
-        public override bool IsTerminal()
-        {
-            int HP = (int)this.GetProperty(Properties.HP);
-            float time = (float)this.GetProperty(Properties.TIME);
-            int money = (int)this.GetProperty(Properties.MONEY);
-
-            return HP <= 0 || time >= 200 || (this.NextPlayer == 0 && money == 25);
-        }
-
         public override float GetScore()
         {
-            int money = (int)this.GetProperty(Properties.MONEY);
+           /* int money = (int)this.GetProperty(Properties.MONEY);
             int HP = (int)this.GetProperty(Properties.HP);
             float time = (float)this.GetProperty(Properties.TIME);
             if (HP <= 0 || time > 200) return 0.0f;
@@ -55,7 +45,8 @@ namespace Assets.Scripts.GameManager
                 float timeWeight = 0.30f;
                 float healthWeight = 0.20f;
                 return  moneyWeight * money/25 + timeWeight * (1 - time/200) + healthWeight * (1 - HP/30);
-            }
+            }*/
+            return 0;
         }
 
         public override int GetNextPlayer()
@@ -65,7 +56,7 @@ namespace Assets.Scripts.GameManager
 
         public override void CalculateNextPlayer()
         {
-            Vector3 position = (Vector3)this.GetProperty(Properties.POSITION);
+            /*Vector3 position = (Vector3)this.GetProperty(Properties.POSITION);
             bool enemyEnabled;
 
             //basically if the character is close enough to an enemy, the next player will be the enemy.
@@ -81,7 +72,7 @@ namespace Assets.Scripts.GameManager
                 }
             }
             this.NextPlayer = 0;
-            //if not, then the next player will be player 0
+            //if not, then the next player will be player 0*/
         }
 
         public override Action GetNextAction()

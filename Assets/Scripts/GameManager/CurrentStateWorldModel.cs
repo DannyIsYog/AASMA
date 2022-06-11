@@ -1,6 +1,6 @@
-﻿using Assets.Scripts.IAJ.Unity.DecisionMaking.ForwardModel.ForwardModelActions;
-using Assets.Scripts.IAJ.Unity.DecisionMaking.ForwardModel;
+﻿using Assets.Scripts.Algorithm.DecisionMaking.ForwardModel;
 using System.Collections.Generic;
+using Assets.Scripts.Agent;
 
 namespace Assets.Scripts.GameManager
 {
@@ -8,56 +8,53 @@ namespace Assets.Scripts.GameManager
     //all required properties and goals are stored inside the game manager
     public class CurrentStateWorldModel : FutureStateWorldModel
     {
-        private Dictionary<string, Goal> Goals { get; set; } 
+        private Dictionary<string, Goal> goals { get; set; } 
+        private PersonData personData;
 
-        public CurrentStateWorldModel(GameManager gameManager, List<Action> actions, List<Goal> goals) : base(gameManager, actions)
+        public CurrentStateWorldModel(PersonData personData, GameManager gameManager, List<Action> actions, List<Goal> goals) : base(gameManager, actions)
         {
-            this.Parent = null;
-            this.Goals = new Dictionary<string, Goal>();
+            this.parent = null;
+            this.personData = personData;
+            this.goals = new Dictionary<string, Goal>();
 
             foreach (var goal in goals)
-            {
-                this.Goals.Add(goal.Name,goal);
-            }
+                this.goals.Add(goal.name,goal);
         }
 
         public void Initialize()
         {
-            this.ActionEnumerator.Reset();
+            this.actionEnumerator.Reset();
         }
 
         public override object GetProperty(string propertyName)
         {
-
             //TIP: this code can be optimized by using a dictionary with lambda functions instead of if's
-            if (propertyName.Equals(Properties.MAXMANA)) return this.GameManager.characterData.MaxMana;
+            if (propertyName.Equals(Properties.SYMPTOMS)) 
+                return personData.symptoms;
 
-            if (propertyName.Equals(Properties.MANA)) return this.GameManager.characterData.Mana;
+            if (propertyName.Equals(Properties.INFECTED)) 
+                return personData.infected;
 
-            if (propertyName.Equals(Properties.XP)) return this.GameManager.characterData.XP;
+            if (propertyName.Equals(Properties.QUARANTINED)) 
+                return personData.quarantined;
 
-            if (propertyName.Equals(Properties.MAXHP)) return this.GameManager.characterData.MaxHP;
+            if (propertyName.Equals(Properties.USING_MASK)) 
+                return personData.usingMask;
 
-            if (propertyName.Equals(Properties.HP)) return this.GameManager.characterData.HP;
-
-            if (propertyName.Equals(Properties.ShieldHP)) return this.GameManager.characterData.ShieldHP;
-
-            if (propertyName.Equals(Properties.MONEY)) return this.GameManager.characterData.Money;
-
-            if (propertyName.Equals(Properties.TIME)) return this.GameManager.characterData.Time;
-
-            if (propertyName.Equals(Properties.LEVEL)) return this.GameManager.characterData.Level;
+            if (propertyName.Equals(Properties.TIME)) 
+                return personData.time;
 
             if (propertyName.Equals(Properties.POSITION))
-                return this.GameManager.characterData.CharacterGameObject.transform.position;
+                return personData.PersonGameObject.transform.position;
 
             //if an object name is found in the dictionary of disposable objects, then the object still exists. The object has been removed/destroyed otherwise
-            return this.GameManager.disposableObjects.ContainsKey(propertyName);
+            //return this.GameManager.disposableObjects.ContainsKey(propertyName);
+            return null;
         }
 
         public override float GetGoalValue(string goalName)
         {
-            return this.Goals[goalName].InsistenceValue;
+            return goals[goalName].insistenceValue;
         }
 
         public override void SetGoalValue(string goalName, float goalValue)
