@@ -10,7 +10,6 @@ namespace Assets.Scripts.Agent
         public bool infected { get; set; }
         public bool quarantined { get; set; }
         public bool usingMask { get; set; }
-        public Dictionary<string, Goal> goals = new Dictionary<string, Goal>();
         public int score { get; set; }
         public float time { get; set; }
         public List<string> disposableActions { get; set; }
@@ -19,6 +18,10 @@ namespace Assets.Scripts.Agent
         // may not be needed
         public Personality personality;
         public GameObject agentGameObject { get; private set; }
+        public List<Goal> goals;
+        public Goal doTasksGoal;
+        public Goal protectGoal;
+        public Goal beQuickGoal;
 
         public AgentData(GameObject gameObject, Goal[] goals, Personality personality)
         {
@@ -31,13 +34,32 @@ namespace Assets.Scripts.Agent
             this.time = 0;
             this.personality = personality;
             disposableActions = new List<string>();
-            GenerateGoals(goals);
+            //GenerateGoals(goals);
         }
 
-        public void GenerateGoals(Goal[] goals)
+        public List<Goal> GenerateGoals()
         {
-            foreach (var goal in goals)
-                this.goals.Add(goal.name,goal);
+            doTasksGoal = new Goal(AgentControl.DO_TASKS_GOAL, personality.tasksValue)
+            {
+                changeRate = personality.tasksChangeRate
+            };
+
+            protectGoal = new Goal(AgentControl.PROTECT_GOAL, personality.protectValue)
+            {
+                changeRate = personality.protectChangeRate
+            };
+
+            beQuickGoal = new Goal(AgentControl.BE_QUICK_GOAL, personality.quickValue)
+            {
+                changeRate = personality.quickChangeRate
+            };
+
+            this.goals = new List<Goal>();
+            this.goals.Add(doTasksGoal);
+            this.goals.Add(beQuickGoal);
+            this.goals.Add(protectGoal);
+
+            return this.goals;
         }
 
         public void AddDisposableAction(string action)

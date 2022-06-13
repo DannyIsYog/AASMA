@@ -6,16 +6,16 @@ namespace Assets.Scripts.Agent{
     public abstract class Personality : MonoBehaviour
     {
         //personality quirks
-        public int id;
-        public float doTasks;
-        public float doPreventiveMeasures;
-        public float test;
-        public float quarantine;
-        public float beQuick;
-        public float noninfected;
+        public float tasksValue = 0f;
+        public float protectValue = 0f;
+        public float quickValue = 0f;
 
-        //global stats
+        //change rate
+        public float tasksChangeRate = 0f;
+        public float protectChangeRate = 0f;
+        public float quickChangeRate = 0f;
 
         protected abstract void SetPersonality();
+
     }
 }

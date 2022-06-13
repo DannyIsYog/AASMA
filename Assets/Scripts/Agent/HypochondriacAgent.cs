@@ -6,15 +6,15 @@ namespace Assets.Scripts.Agent
 {
     public class HypochondriacAgent : Personality
     {
-
         protected override void SetPersonality() {
-            id = 2;
-            doTasks = 0.5f;
-            doPreventiveMeasures = 1.0f;
-            test = 1.0f;
-            quarantine = 1.0f;
-            beQuick = 0f;
-            noninfected = 1.0f;
+            tasksValue = 2f;
+            protectValue = 8f;
+            quickValue = 2f;
+
+            //change rate
+            tasksChangeRate = 0.2f;
+            protectChangeRate = 0.5f;
+            quickChangeRate = 0.2f;
         }
 
     }

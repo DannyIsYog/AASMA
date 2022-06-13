@@ -18,7 +18,7 @@ namespace Assets.Scripts.Agent
         public const string BE_QUICK_GOAL = "BeQuick";
 
         public const float DECISION_MAKING_INTERVAL = 200.0f;
-        public const float GOAL_CHANING_INTERVAL = 20.0f;
+        public const float GOAL_CHANGING_INTERVAL = 20.0f;
         public const float TEST_INTERVAL = 20.0f;
         /*public const float RESTING_INTERVAL = 5.0f;
         public const int REST_HP_RECOVERY = 2;*/
@@ -147,29 +147,18 @@ namespace Assets.Scripts.Agent
 
                 this.GetManaGoal.InsistenceValue = GameManager.characterData.MaxMana - GameManager.characterData.Mana;*/
 
-                this.beQuickGoal.insistenceValue += GOAL_CHANING_INTERVAL * this.beQuickGoal.changeRate;
+                this.doTasksGoal.insistenceValue += GOAL_CHANGING_INTERVAL * this.doTasksGoal.changeRate;
+                /*if(this.doTasksGoal.insistenceValue > 10.0f)
+                    this.doTasksGoal.insistenceValue = 100.0f;*/
+
+                this.protectGoal.insistenceValue += GOAL_CHANGING_INTERVAL * this.protectGoal.changeRate;
+                /*if(this.protectGoal.insistenceValue > 10.0f)
+                    this.protectGoal.insistenceValue = 100.0f;*/
+
+                this.beQuickGoal.insistenceValue += GOAL_CHANGING_INTERVAL * this.beQuickGoal.changeRate;
                 if(this.beQuickGoal.insistenceValue > 10.0f)
                     this.beQuickGoal.insistenceValue = 10.0f;
-                
 
-                /*if(GameManager.characterData.Level > this.previousLevel)
-                {
-                    this.GainLevelGoal.InsistenceValue = 0;
-                    this.previousLevel = GameManager.characterData.Level;
-                }
-                else 
-                    this.GainLevelGoal.InsistenceValue += this.GainLevelGoal.ChangeRate; //increase in goal over time
-                
-
-                this.GetRichGoal.InsistenceValue += this.GetRichGoal.ChangeRate; //increase in goal over time
-                if (this.GetRichGoal.InsistenceValue > 10)
-                    this.GetRichGoal.InsistenceValue = 10.0f;
-
-                if (GameManager.characterData.Money > this.previousGold)
-                {
-                    this.GetRichGoal.InsistenceValue -= 2; 
-                    this.previousGold = GameManager.characterData.Money;
-                }*/
 
                 this.DoTasksGoalText.text = "Do Tasks: " + this.doTasksGoal.insistenceValue;
                 this.ProtectGoalText.text = "Protect: " + this.protectGoal.insistenceValue.ToString("F1");
@@ -189,9 +178,13 @@ namespace Assets.Scripts.Agent
 
         public void GenerateGoals()
         {
-            this.doTasksGoal = new Goal(DO_TASKS_GOAL, 8f);
+            //this.Goals = agentData.GenerateGoals();
+            this.doTasksGoal = new Goal(DO_TASKS_GOAL, 5f)
+            {
+                changeRate = 0.5f
+            };
 
-            this.protectGoal = new Goal(PROTECT_GOAL, 8f)
+            this.protectGoal = new Goal(PROTECT_GOAL, 5f)
             {
                 changeRate = 0.5f
             };
@@ -211,19 +204,23 @@ namespace Assets.Scripts.Agent
         {
             this.Actions = new List<Action>();
 
-            if (agentData.personality.GetType() != typeof(EgocentricAgent))
+            // Egocentric types do not protect, test or quarantine
+            if (agentData.personality.GetType() != typeof(EgocentricAgent)){
+
                 this.Actions.Add(new UseMask(this));
 
-            // spawn of agent
-            foreach (var quarantine in GameObject.FindGameObjectsWithTag("Quarantine"))
-                this.Actions.Add(new Quarantine(this, quarantine));
+                // spawn of agent
+                foreach (var quarantine in GameObject.FindGameObjectsWithTag("Quarantine"))
+                    this.Actions.Add(new Quarantine(this, quarantine));
 
-            foreach (var hospital in GameObject.FindGameObjectsWithTag("Hospital"))
-                this.Actions.Add(new Test(this, hospital));
+                foreach (var hospital in GameObject.FindGameObjectsWithTag("Hospital"))
+                    this.Actions.Add(new Test(this, hospital));
+            }
+
 
             for(int i = 0; i < actionsNumber; i++){
 
-                //TODO
+                //TODO verification no more actions than those that exist
                 if (actionsNumber > System.Enum.GetValues(typeof(Building.BuildingTypes)).Length)
                     return;
 
@@ -457,7 +454,6 @@ namespace Assets.Scripts.Agent
 
         private System.Collections.IEnumerator WaitAction(string building, float delay){
             yield return new WaitForSeconds(delay);
-
         }
 
         private bool CheckRange(GameObject obj, float maximumSqrDistance)

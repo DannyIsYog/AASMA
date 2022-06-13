@@ -6,15 +6,15 @@ namespace Assets.Scripts.Agent
 {
     public class EgocentricAgent : Personality
     {
-
         protected override void SetPersonality() {
-            id = 1;
-            doTasks = 1.0f;
-            doPreventiveMeasures = 0f;
-            test = 0f;
-            quarantine = 0f;
-            beQuick = 1.0f;
-            noninfected = 0f;
+            tasksValue = 8f;
+            protectValue = 2f;
+            quickValue = 5f;
+
+            //change rate
+            tasksChangeRate = 0.2f;
+            protectChangeRate = 0.5f;
+            quickChangeRate = 0.2f;
         }
 
     }
