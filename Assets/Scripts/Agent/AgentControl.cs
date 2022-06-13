@@ -124,7 +124,6 @@ namespace Assets.Scripts.Agent
 
             // Initialization of Decision Making Algorithms
             var worldModel = new CurrentStateWorldModel(agentData, GameManager, this.Actions, this.Goals);
-            //this.GOBDecisionMaking = new GOBDecisionMaking(this.Actions, this.Goals);
             this.GOAPDecisionMaking = new DepthLimitedGOAPDecisionMaking(worldModel, this.Actions, this.Goals);
             
             DiaryText.text += "My Diary \n I awoke. What a wonderful day to NOT spread a virus! \n";
@@ -143,24 +142,20 @@ namespace Assets.Scripts.Agent
 
                 //first step, perceptions
                 //update the agent's goals based on the state of the world
-                /*this.SurviveGoal.InsistenceValue = (GameManager.characterData.MaxHP - GameManager.characterData.HP) + (5 - GameManager.characterData.ShieldHP);
+                this.doTasksGoal.insistenceValue +=  this.doTasksGoal.changeRate; //- tasks left to do ;
+                if(this.doTasksGoal.insistenceValue > 10.0f)
+                    this.doTasksGoal.insistenceValue = 100.0f;
 
-                this.GetManaGoal.InsistenceValue = GameManager.characterData.MaxMana - GameManager.characterData.Mana;*/
-
-                this.doTasksGoal.insistenceValue += GOAL_CHANGING_INTERVAL * this.doTasksGoal.changeRate;
-                /*if(this.doTasksGoal.insistenceValue > 10.0f)
-                    this.doTasksGoal.insistenceValue = 100.0f;*/
-
-                this.protectGoal.insistenceValue += GOAL_CHANGING_INTERVAL * this.protectGoal.changeRate;
-                /*if(this.protectGoal.insistenceValue > 10.0f)
-                    this.protectGoal.insistenceValue = 100.0f;*/
+                this.protectGoal.insistenceValue += this.protectGoal.changeRate;
+                if(this.protectGoal.insistenceValue > 10.0f)
+                    this.protectGoal.insistenceValue = 100.0f;
 
                 this.beQuickGoal.insistenceValue += GOAL_CHANGING_INTERVAL * this.beQuickGoal.changeRate;
                 if(this.beQuickGoal.insistenceValue > 10.0f)
                     this.beQuickGoal.insistenceValue = 10.0f;
 
 
-                this.DoTasksGoalText.text = "Do Tasks: " + this.doTasksGoal.insistenceValue;
+                this.DoTasksGoalText.text = "Do Tasks: " + this.doTasksGoal.insistenceValue.ToString("F1");
                 this.ProtectGoalText.text = "Protect: " + this.protectGoal.insistenceValue.ToString("F1");
                 this.BeQuickGoalText.text = "Be Quick: " + this.beQuickGoal.insistenceValue.ToString("F1");
                 this.DiscontentmentText.text = "Discontentment: " + this.CalculateDiscontentment().ToString("F1");
@@ -181,12 +176,12 @@ namespace Assets.Scripts.Agent
             //this.Goals = agentData.GenerateGoals();
             this.doTasksGoal = new Goal(DO_TASKS_GOAL, 5f)
             {
-                changeRate = 0.5f
+                changeRate = 0.05f
             };
 
             this.protectGoal = new Goal(PROTECT_GOAL, 5f)
             {
-                changeRate = 0.5f
+                changeRate = 0.05f
             };
 
             this.beQuickGoal = new Goal(BE_QUICK_GOAL, 3f)
