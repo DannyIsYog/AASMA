@@ -14,7 +14,7 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.GOB
         public bool InProgress { get; set; }
 
         public CurrentStateWorldModel InitialWorldModel { get; set; }
-        private List<Goal> Goals { get; set; }
+        private List<Goal> goals { get; set; }
         private WorldModel[] Models { get; set; }
         private Action[] ActionPerLevel { get; set; }
         public Action[] BestActionSequence { get; private set; }
@@ -25,7 +25,8 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.GOB
         public DepthLimitedGOAPDecisionMaking(CurrentStateWorldModel currentStateWorldModel, List<Action> actions, List<Goal> goals)
         {
             this.ActionCombinationsProcessedPerFrame = 200;
-            this.Goals = goals;
+            this.goals = goals;
+        
             this.InitialWorldModel = currentStateWorldModel;
         }
 
@@ -52,7 +53,7 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.GOB
 
             while(this.CurrentDepth >= 0) {
                 if(CurrentDepth >= MAX_DEPTH) {
-                    float value = Models[CurrentDepth].CalculateDiscontentment(Goals);
+                    float value = Models[CurrentDepth].CalculateDiscontentment(goals);
                     
                     if(value < BestDiscontentmentValue) {
                        BestDiscontentmentValue = value;
@@ -61,15 +62,15 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.GOB
                            BestActionSequence[i] = ActionPerLevel[i];
                     }
 
-                       CurrentDepth -= 1;
+                       CurrentDepth --;
                 }
                 else {
                     Action nextAction = Models[CurrentDepth].GetNextAction();
                     if(nextAction != null) {
                         
-                        if(nextAction.name == "Test" && CurrentDepth == 0) 
-                            return nextAction;
                         if(nextAction.name == "Quarantine" && CurrentDepth == 0) 
+                            return nextAction;
+                        if(nextAction.name == "Test" && CurrentDepth == 0) 
                             return nextAction;
 
                         Models[CurrentDepth+1] = Models[CurrentDepth].GenerateChildWorldModel();
@@ -83,7 +84,7 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.GOB
                     }
                     else {
                         if (CurrentDepth > 0) {
-                            float value = Models[CurrentDepth-1].CalculateDiscontentment(Goals);
+                            float value = Models[CurrentDepth-1].CalculateDiscontentment(goals);
                             if(value < BestDiscontentmentValue) {
                                 BestDiscontentmentValue = value;
                                 BestAction = ActionPerLevel[0];

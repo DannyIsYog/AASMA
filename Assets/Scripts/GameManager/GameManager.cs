@@ -25,10 +25,16 @@ namespace Assets.Scripts.GameManager
         [Header("Enemy Settings")]
         public bool StochasticWorld;
 
+        //world stats
+        public int symptomsNumber = 0;
+        public int infectedNumber = 0;
+        public int quarantinedNumber = 0;
+        public int protectingNumber = 0;
+
         [Header("People specs")]
         public int number;
-        public GameObject personPrefab;
-        public GameObject[] people;
+        public GameObject agentPrefab;
+        public GameObject[] agents;
         public int selfAwarePercentage;
         public int egocentricPercentage;
         public int hypochondriacPercentage;
@@ -41,7 +47,7 @@ namespace Assets.Scripts.GameManager
         public int maxHpPotions = 0;
         public int maxManaPotions = 0;*/
 
-        public bool WorldChanged { get; set; }
+        //public bool WorldChanged { get; set; }
 
         private float nextUpdateTime = 0.0f;
         private float enemyAttackCooldown = 0.0f;
@@ -51,30 +57,29 @@ namespace Assets.Scripts.GameManager
 
         void Awake()
         {
-            this.WorldChanged = false;
+            agents = new GameObject[number];
             GeneratePeople(number);
         }
 
         public void Update()
         {
-            PersonData personData = this.people[0].GetComponent<PersonControl>().personData;
+            AgentData agentData = this.agents[0].GetComponent<AgentControl>().agentData;
 
             if (Time.time > this.nextUpdateTime)
             {
                 this.nextUpdateTime = Time.time + UPDATE_INTERVAL;
-                personData.time += UPDATE_INTERVAL;
+                agentData.time += UPDATE_INTERVAL;
             }
 
             //TODO to change when we have multiple agents
-            this.SymptomsText.text = "Symptoms: " + personData.symptoms;
-            this.InfectedText.text = "Infected: " + personData.infected;
-            this.QuarantinedText.text = "Quarantined: " + personData.quarantined;
-            this.UsingMaskText.text = "UsingMask: " + personData.usingMask;
-            this.GoalsText.text = "Goals:";
-            this.TimeText.text = "Time: " + personData.time;
+            this.SymptomsText.text = symptomsNumber + " contracted symptoms";
+            this.InfectedText.text = infectedNumber + " infected";
+            this.QuarantinedText.text = quarantinedNumber + " are in quarantine";
+            this.UsingMaskText.text = protectingNumber + " are protected";
+            this.TimeText.text = "Time: " + agentData.time;
 
-            foreach(Goal goal in personData.goals.Values)
-                this.GoalsText.text = this.GoalsText.text + " " + goal.name;
+            /*foreach(Action action in agents[0].GetComponent<AgentControl>().Actions)
+                this.GoalsText.text = this.GoalsText.text + " " + action.name;*/
 
             /*if(this.peopleData[0].HP <= 0 || this.peopleData[0].Time >= TIME_LIMIT)
             {
@@ -132,29 +137,30 @@ namespace Assets.Scripts.GameManager
 
             for(int i = 0; i < number; i++)
             {
-                GameObject person = Instantiate(personPrefab, new Vector3(i * 2.0f, 0, 0), Quaternion.identity);
+                GameObject agent = Instantiate(agentPrefab, new Vector3(i * 2.0f, 0, 0), Quaternion.identity);
+                agent.transform.parent = GameObject.Find("Agents").transform;
                 
                 Personality p = null;
                 //this.initialPosition = this.character.transform.position;
 
                 //self-aware
                 if (i < selfAwareAgents){
-                    person.GetComponent<Renderer>().material.SetColor("_Color", Color.blue);
+                    agent.GetComponent<Renderer>().material.SetColor("_Color", Color.blue);
                     p = new SelfAwareAgent();
                 }
                 //egocentric
-                else if (i >= selfAwareAgents){
-                    person.GetComponent<Renderer>().material.SetColor("_Color", Color.red);
+                else if (i >= selfAwareAgents && i < selfAwareAgents + egocentricAgents){
+                    agent.GetComponent<Renderer>().material.SetColor("_Color", Color.red);
                     p = new EgocentricAgent();
                 }
                 //hypochondriac
-                else if (i >= selfAwareAgents + egocentricAgents){
-                    person.GetComponent<Renderer>().material.SetColor("_Color", Color.yellow);
+                else {
+                    agent.GetComponent<Renderer>().material.SetColor("_Color", Color.yellow);
                     p = new HypochondriacAgent();
                 }
 
-                this.people[i] = person;
-                person.GetComponent<PersonControl>().personData = new PersonData(person, new Goal[0], p);
+                agent.GetComponent<AgentControl>().Init(agent, p);
+                this.agents[i] = agent;
             }
         }
     }

@@ -45,7 +45,6 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.ForwardModel
                 return this.parent.GetProperty(propertyName); //TODO possibly
             else
                 return null;
-            
         }
 
         public virtual void SetProperty(string propertyName, object value)
@@ -106,11 +105,11 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.ForwardModel
             while (action != null && !action.CanExecute(this))
             {
                 if (this.actionEnumerator.MoveNext())
-                    action = this.actionEnumerator.Current;    
+                    action = this.actionEnumerator.Current;   
                 else
                     action = null;
+                
             }
-
             return action;
         }
 

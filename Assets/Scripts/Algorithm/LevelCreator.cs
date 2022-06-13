@@ -19,19 +19,19 @@ public class LevelCreator : MonoBehaviour
     string[,] textLines;
 
     [Header("Prefabs")]
-    public GameObject orcPrefab;
+    /*public GameObject orcPrefab;
     public GameObject chestPrefab;
     public GameObject manaPotion;
     public GameObject healthPotion;
     public GameObject skeletonPrefab;
-    public GameObject dragonPrefab;
+    public GameObject dragonPrefab;*/
     public GameObject wallPrefab;
 
     [Header("Spawn Conglomerates")]
     public Transform wallSpawn;
-    public Transform monsterSpawn;
+    /*public Transform monsterSpawn;
     public Transform chestSpawn;
-    public Transform potionSpawn;
+    public Transform potionSpawn;*/
 
 
     // Create the grid according to the text file set in the "Assets/Resources/grid.txt"
@@ -51,7 +51,6 @@ public class LevelCreator : MonoBehaviour
         //Informing the grid of nodes that are not walkable
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++) {
-
                 // We are reading the textLines from the top left till the bottom right, we need to adjust accordingly
                 var x = j;
                 var y = height - i - 1;
@@ -64,7 +63,7 @@ public class LevelCreator : MonoBehaviour
 
                 }
 
-                else if (textLines[i, j] == "x")
+                /*else if (textLines[i, j] == "x")
                 {
                     // Skelleton
                     var skell = GameObject.Instantiate(skeletonPrefab, monsterSpawn);
@@ -136,7 +135,7 @@ public class LevelCreator : MonoBehaviour
                     r.speed = 0;
                     chestCounter++;
 
-                } 
+                } */
             }
 
 
@@ -154,7 +153,7 @@ public class LevelCreator : MonoBehaviour
            toDelete.Add(wallSpawn.GetChild(i).gameObject);
         }
 
-        var monsterNumber = monsterSpawn.childCount;
+        /*var monsterNumber = monsterSpawn.childCount;
 
         for (int i = 0; i < monsterNumber; i++)
         {
@@ -173,7 +172,7 @@ public class LevelCreator : MonoBehaviour
         for (int i = 0; i < chestNumber; i++)
         {
             toDelete.Add(chestSpawn.GetChild(i).gameObject);
-        }
+        }*/
         
         foreach(var d in toDelete)
         {

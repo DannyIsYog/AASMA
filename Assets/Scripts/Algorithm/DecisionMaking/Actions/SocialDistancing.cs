@@ -8,7 +8,7 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
     public class SocialDistancing : WalkToTargetAndExecuteAction
     {
 
-        public SocialDistancing(PersonControl person, GameObject target) : base("SocialDistancing", person, target)
+        public SocialDistancing(AgentControl person, GameObject target) : base("SocialDistancing", person, target)
         {
         }
 

@@ -7,14 +7,14 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 {
     public abstract class WalkToTargetAndExecuteAction : Action
     {
-        protected PersonControl person { get; set; }
+        protected AgentControl person { get; set; }
 
-        public GameObject Target { get; set; }
+        public GameObject target { get; set; }
 
-        protected WalkToTargetAndExecuteAction(string actionName, PersonControl person, GameObject target) : base(actionName + "(" + target.name + ")")
+        protected WalkToTargetAndExecuteAction(string actionName, AgentControl person, GameObject target) : base(actionName + "(" + target.name + ")")
         {
             this.person = person;
-            this.Target = target;
+            this.target = target;
         }
 
         public override float GetDuration()
@@ -30,14 +30,14 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 
         private float GetDuration(Vector3 currentPosition)
         {
-            var distance = getDistance(currentPosition, Target.transform.position);
+            var distance = getDistance(currentPosition, target.transform.position);
             var result = distance / this.person.maxSpeed;
             return result;
         }
 
         public override float GetGoalChange(Goal goal)
         {
-            if (goal.name == PersonControl.BE_QUICK_GOAL)
+            if (goal.name == AgentControl.BE_QUICK_GOAL)
                 return this.GetDuration();
             
             else return 0;
@@ -45,37 +45,37 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 
         public override bool CanExecute()
         {
-            return this.Target != null;
+            return this.target != null;
         }
 
         public override bool CanExecute(WorldModel worldModel)
         {
-            if (this.Target == null) 
+            if (this.target == null) 
                 return false;
-                
-            var targetEnabled = (bool)worldModel.GetProperty(this.Target.name);
+
+            var targetEnabled = (bool) worldModel.GetProperty(this.target.name);
             return targetEnabled;
         }
 
         public override void Execute()
         {
-            Vector3 delta = this.Target.transform.position - this.person.transform.position;
+            Vector3 delta = this.target.transform.position - this.person.transform.position;
             
             if (delta.sqrMagnitude > 5 )
-               this.person.StartPathfinding(this.Target.transform.position);
+               this.person.StartPathfinding(this.target.transform.position);
         }
 
 
         public override void ApplyActionEffects(WorldModel worldModel)
         {
             var duration = this.GetDuration(worldModel);
-            var quicknessValue = worldModel.GetGoalValue(PersonControl.BE_QUICK_GOAL);
-            worldModel.SetGoalValue(PersonControl.BE_QUICK_GOAL, quicknessValue + duration * 0.1f);
+            var quicknessValue = worldModel.GetGoalValue(AgentControl.BE_QUICK_GOAL);
+            worldModel.SetGoalValue(AgentControl.BE_QUICK_GOAL, quicknessValue + duration * 0.1f);
 
             var time = (float)worldModel.GetProperty(Properties.TIME);
             worldModel.SetProperty(Properties.TIME, time + duration);
 
-            worldModel.SetProperty(Properties.POSITION, Target.transform.position);
+            worldModel.SetProperty(Properties.POSITION, target.transform.position);
         }
 
         private float getDistance(Vector3 currentPosition, Vector3 targetPosition)

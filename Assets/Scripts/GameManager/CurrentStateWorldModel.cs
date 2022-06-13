@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts.Algorithm.DecisionMaking.ForwardModel;
 using System.Collections.Generic;
 using Assets.Scripts.Agent;
+using UnityEngine;
 
 namespace Assets.Scripts.GameManager
 {
@@ -9,12 +10,12 @@ namespace Assets.Scripts.GameManager
     public class CurrentStateWorldModel : FutureStateWorldModel
     {
         private Dictionary<string, Goal> goals { get; set; } 
-        private PersonData personData;
+        private AgentData agentData;
 
-        public CurrentStateWorldModel(PersonData personData, GameManager gameManager, List<Action> actions, List<Goal> goals) : base(gameManager, actions)
+        public CurrentStateWorldModel(AgentData agentData, GameManager gameManager, List<Action> actions, List<Goal> goals) : base(gameManager, actions)
         {
             this.parent = null;
-            this.personData = personData;
+            this.agentData = agentData;
             this.goals = new Dictionary<string, Goal>();
 
             foreach (var goal in goals)
@@ -29,27 +30,26 @@ namespace Assets.Scripts.GameManager
         public override object GetProperty(string propertyName)
         {
             //TIP: this code can be optimized by using a dictionary with lambda functions instead of if's
-            if (propertyName.Equals(Properties.SYMPTOMS)) 
-                return personData.symptoms;
 
+            if (propertyName.Equals(Properties.SYMPTOMS)) 
+                return agentData.symptoms;
+            
             if (propertyName.Equals(Properties.INFECTED)) 
-                return personData.infected;
+                return agentData.infected;
 
             if (propertyName.Equals(Properties.QUARANTINED)) 
-                return personData.quarantined;
+                return agentData.quarantined;
 
             if (propertyName.Equals(Properties.USING_MASK)) 
-                return personData.usingMask;
+                return agentData.usingMask;
 
             if (propertyName.Equals(Properties.TIME)) 
-                return personData.time;
+                return agentData.time;
 
             if (propertyName.Equals(Properties.POSITION))
-                return personData.PersonGameObject.transform.position;
+                return agentData.agentGameObject.transform.position;
 
-            //if an object name is found in the dictionary of disposable objects, then the object still exists. The object has been removed/destroyed otherwise
-            //return this.GameManager.disposableObjects.ContainsKey(propertyName);
-            return null;
+            return this.agentData.ContainsAction(propertyName);
         }
 
         public override float GetGoalValue(string goalName)

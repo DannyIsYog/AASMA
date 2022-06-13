@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 {
-    public class Test : WalkToTargetAndExecuteAction
+    public class Test : DoTask
     {
         private float protectChange = 10.0f;
-        private PersonControl person;
+        private AgentControl agent;
 
-        public Test(PersonControl person, GameObject target) : base("Test", person, target)
+        public Test(AgentControl agent, GameObject target) : base("Test", agent, target)
         {
-            this.person = person;
+            this.agent = agent;
         }
 
         public override float GetGoalChange(Goal goal)
@@ -20,45 +20,31 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
             var change = base.GetGoalChange(goal);
             
             // maybe use another goal (spreadGoal for example)
-            if (goal.name == PersonControl.PROTECT_GOAL) 
+            if (goal.name == AgentControl.PROTECT_GOAL) 
                 change -= protectChange;
 
             return change;
         }
 
-        public override bool CanExecute()
-        {
-           // if(character.)
-           return true;
-        }
-
         public override bool CanExecute(WorldModel worldModel)
         {
-            if (!base.CanExecute(worldModel)) 
-                return false;
-
-            return true;
+            if(agent.agentData.symptoms && Time.time > agent.testInterval)
+                return true;
+            return false;
         }
 
         public override void Execute()
         {
             base.Execute();
-            //this.Character.GameManager.Test(this.Target);
+            agent.Test(this.target);
         }
 
         public override void ApplyActionEffects(WorldModel worldModel)
         {
             base.ApplyActionEffects(worldModel);
 
-            var goalValue = worldModel.GetGoalValue(PersonControl.PROTECT_GOAL);
-            worldModel.SetGoalValue(PersonControl.PROTECT_GOAL, goalValue - protectChange);
-
-            //check if positive or negative
-            /*var money = (int)worldModel.GetProperty(Properties.MONEY);
-            worldModel.SetProperty(Properties.MONEY, money + 5);*/
-
-            //disables the target object so that it can't be reused again
-            worldModel.SetProperty(this.Target.name, false);
+            var goalValue = worldModel.GetGoalValue(AgentControl.PROTECT_GOAL);
+            worldModel.SetGoalValue(AgentControl.PROTECT_GOAL, goalValue - protectChange);
         }
     }
 }
