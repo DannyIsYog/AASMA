@@ -11,6 +11,7 @@ TagManager:
   - Restaurant
   - Park
   - Work
+  - Agent
   layers:
   - Default
   - TransparentFX
