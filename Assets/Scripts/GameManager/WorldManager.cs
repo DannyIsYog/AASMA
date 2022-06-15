@@ -8,10 +8,18 @@ public class WorldManager : MonoBehaviour
     public int sizeOfSlots; // 60 by default to simulate one hour
     public int currentSlot;
     public int worldSpeed = 1; // how fast the world ticks, 1 by default
+
+    public GameObject spawnPointsParent;
+    public List<GameObject> spawnPoints = new List<GameObject>();
+
+    public Assets.Scripts.GameManager.GameManager gameManager;
+
+
     void Start()
     {
         time = 0;
         InvokeRepeating("tickTheClock", 1f, 1f);
+
         currentSlot = 0;
     }
 
@@ -30,5 +38,17 @@ public class WorldManager : MonoBehaviour
     }
 
     //TODO spawners
+
+    public void spawner()
+    {
+        int children = spawnPointsParent.transform.childCount;
+        for (int i = 0; i < children; ++i)
+        {
+            spawnPoints.Add(spawnPointsParent.transform.GetChild(i).gameObject);
+            Debug.Log("Adding");
+        }
+        foreach (GameObject agent in gameManager.agents)
+            agent.transform.position = spawnPoints[Random.Range(0, spawnPoints.Count - 1)].transform.position;
+    }
     //TODO state of the world
 }

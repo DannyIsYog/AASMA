@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using Assets.Scripts.Agent;
+﻿using Assets.Scripts.Agent;
 using Assets.Scripts.Algorithm.DecisionMaking.ForwardModel;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Assets.Scripts.GameManager
 {
@@ -38,6 +38,8 @@ namespace Assets.Scripts.GameManager
         public int selfAwarePercentage;
         public int egocentricPercentage;
         public int hypochondriacPercentage;
+
+        public WorldManager worldManager;
 
 
         //fields
@@ -131,30 +133,33 @@ namespace Assets.Scripts.GameManager
 
         public void GeneratePeople(int number)
         {
-            int selfAwareAgents = (number*selfAwarePercentage)/100;
-            int egocentricAgents = (number*egocentricPercentage)/100;
-            int hypochondriacAgents = (number*hypochondriacPercentage)/100;
+            int selfAwareAgents = (number * selfAwarePercentage) / 100;
+            int egocentricAgents = (number * egocentricPercentage) / 100;
+            int hypochondriacAgents = (number * hypochondriacPercentage) / 100;
 
-            for(int i = 0; i < number; i++)
+            for (int i = 0; i < number; i++)
             {
                 GameObject agent = Instantiate(agentPrefab, new Vector3(i * 2.0f, 0, 0), Quaternion.identity);
                 agent.transform.parent = GameObject.Find("Agents").transform;
-                
+
                 Personality p = null;
                 //this.initialPosition = this.character.transform.position;
 
                 //self-aware
-                if (i < selfAwareAgents){
+                if (i < selfAwareAgents)
+                {
                     agent.GetComponent<Renderer>().material.SetColor("_Color", Color.blue);
                     p = new SelfAwareAgent();
                 }
                 //egocentric
-                else if (i >= selfAwareAgents && i < selfAwareAgents + egocentricAgents){
+                else if (i >= selfAwareAgents && i < selfAwareAgents + egocentricAgents)
+                {
                     agent.GetComponent<Renderer>().material.SetColor("_Color", Color.red);
                     p = new EgocentricAgent();
                 }
                 //hypochondriac
-                else {
+                else
+                {
                     agent.GetComponent<Renderer>().material.SetColor("_Color", Color.yellow);
                     p = new HypochondriacAgent();
                 }
@@ -162,6 +167,7 @@ namespace Assets.Scripts.GameManager
                 agent.GetComponent<AgentControl>().Init(agent, p);
                 this.agents[i] = agent;
             }
+            worldManager.spawner();
         }
     }
 }
