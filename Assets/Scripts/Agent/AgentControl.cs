@@ -80,6 +80,7 @@ namespace Assets.Scripts.Agent
         public int infectionProbability = 10;
         public float timeOfContact = 0f;
         private bool doingTask = false;
+        public bool socialDistancing = false;
 
         public void Init(GameObject person, Personality p)
         {
@@ -414,8 +415,10 @@ namespace Assets.Scripts.Agent
 
         public void SocialDistance(GameObject target)
         {
-            Vector3 direction = transform.position + (transform.position - target.transform.position).normalized;
+            Debug.Log("i am social distancing from " + target);
+            Vector3 direction = transform.position + Quaternion.Euler(0, Random.Range(0, 360), 0) * Vector3.right;
             StartPathfinding(direction);
+            socialDistancing = true;
         }
 
         private bool CheckForInfection()
@@ -461,9 +464,9 @@ namespace Assets.Scripts.Agent
 
         void OnTriggerEnter(Collider coll)
         {
-            Debug.Log("hahahahah");
             protectGoal.insistenceValue += protectGoal.changeRate;
             agentData.socialDistance = true;
+            socialDistancing = true;
             agentsAroundMe++;
         }
 
@@ -492,9 +495,10 @@ namespace Assets.Scripts.Agent
 
         void OnTriggerExit(Collider coll)
         {
+            Debug.Log("Exiting");
             protectGoal.insistenceValue -= protectGoal.changeRate;
-            agentData.socialDistance = false;
-            //this.Actions.Remove(new SocialDistancing(this, coll.gameObject));
+            //agentData.socialDistance = false;
+            //socialDistancing = false;
 
             agentsAroundMe--;
         }

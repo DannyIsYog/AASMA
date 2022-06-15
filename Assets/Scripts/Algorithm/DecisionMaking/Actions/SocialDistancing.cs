@@ -11,6 +11,9 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
         private AgentControl agent;
         private GameObject target;
         private float goalChange = 20.0f;
+
+        private float SOCIAL_INTERVAL = 10f;
+        private float socialTime = 0;
         public SocialDistancing(AgentControl agent, GameObject target) : base("SocialDistancing", agent, target)
         {
             this.agent = agent;
@@ -27,7 +30,7 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 
         public override bool CanExecute(WorldModel worldModel)
         {
-            if (agent.agentData.socialDistance)
+            if (Time.time > socialTime && agent.agentData.socialDistance && !agent.socialDistancing)
                 return true;
 
             return false;
@@ -36,6 +39,7 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
         {
             base.Execute();
             agent.SocialDistance(target);
+            socialTime += Time.time + SOCIAL_INTERVAL;
         }
 
         public override void ApplyActionEffects(WorldModel worldModel)
