@@ -7,12 +7,13 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 {
     public class Test : DoTask
     {
-        private float protectChange = 10.0f;
+        private float goalChange = 5.0f;
         private AgentControl agent;
 
         public Test(AgentControl agent, GameObject target) : base("Test", agent, target)
         {
             this.agent = agent;
+            this.goalChange = this.agent.agentData.personality.protectValue*2;
         }
 
         public override float GetGoalChange(Goal goal)
@@ -21,16 +22,14 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
             
             // maybe use another goal (spreadGoal for example)
             if (goal.name == AgentControl.PROTECT_GOAL) 
-                change -= protectChange;
+                change -= goalChange;
 
             return change;
         }
 
         public override bool CanExecute(WorldModel worldModel)
         {
-            if(agent.agentData.symptoms && Time.time > agent.testInterval)
-                return true;
-            return false;
+            return agent.agentData.symptoms && !agent.agentData.tested;
         }
 
         public override void Execute()
@@ -44,7 +43,7 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
             base.ApplyActionEffects(worldModel);
 
             var goalValue = worldModel.GetGoalValue(AgentControl.PROTECT_GOAL);
-            worldModel.SetGoalValue(AgentControl.PROTECT_GOAL, goalValue - protectChange);
+            worldModel.SetGoalValue(AgentControl.PROTECT_GOAL, goalValue - goalChange);
         }
     }
 }

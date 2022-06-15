@@ -563,7 +563,7 @@ MonoBehaviour:
   infectedNumber: 0
   quarantinedNumber: 0
   protectingNumber: 0
-  number: 20
+  number: 10
   agentPrefab: {fileID: 8636273427996616605, guid: cef8d0a338f132740a1a291a745057c0, type: 3}
   agents: []
   selfAwarePercentage: 100

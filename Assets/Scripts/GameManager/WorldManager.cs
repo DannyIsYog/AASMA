@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Assets.Scripts.Agent;
 
 public class WorldManager : MonoBehaviour
 {
@@ -47,8 +48,15 @@ public class WorldManager : MonoBehaviour
             spawnPoints.Add(spawnPointsParent.transform.GetChild(i).gameObject);
             Debug.Log("Adding");
         }
-        foreach (GameObject agent in gameManager.agents)
-            agent.transform.position = spawnPoints[Random.Range(0, spawnPoints.Count - 1)].transform.position;
     }
-    //TODO state of the world
+
+    public void spawnAgent(GameObject agent)
+    {
+        GameObject quarantineCenter = spawnPoints[Random.Range(0, spawnPoints.Count - 1)];
+        agent.transform.position = quarantineCenter.transform.position;
+        agent.GetComponent<AgentControl>().quarantineCenter = quarantineCenter;
+    }
+
+
+//TODO state of the world
 }

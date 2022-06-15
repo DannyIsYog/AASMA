@@ -367,7 +367,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Goals:'
+  m_Text: 0 finished their tasks
 --- !u!222 &292963554
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -527,7 +527,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Using Mask: false'
+  m_Text: 0 are protected
 --- !u!222 &327687788
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -536,6 +536,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 327687785}
   m_CullTransparentMesh: 0
+--- !u!4 &345413809 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+  m_PrefabInstance: {fileID: 1884304263}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &356754593
 GameObject:
   m_ObjectHideFlags: 0
@@ -589,18 +594,19 @@ MonoBehaviour:
   TimeText: {fileID: 841148333}
   DiaryText: {fileID: 322545821}
   GameEnd: {fileID: 1630266018}
-  StochasticWorld: 0
   symptomsNumber: 0
   infectedNumber: 0
   quarantinedNumber: 0
   protectingNumber: 0
+  goalsNumber: 0
   number: 20
   agentPrefab: {fileID: 8636273427996616605, guid: cef8d0a338f132740a1a291a745057c0, type: 3}
-  agents: []
-  selfAwarePercentage: 100
-  egocentricPercentage: 0
+  selfAwarePercentage: 0
+  egocentricPercentage: 100
   hypochondriacPercentage: 0
   worldManager: {fileID: 1354168337}
+  infectionProbability: 5
+  symptomsProbability: 2
 --- !u!4 &356754596
 Transform:
   m_ObjectHideFlags: 0
@@ -868,7 +874,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Infected: false'
+  m_Text: 0 are infected
 --- !u!222 &526154129
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1471,7 +1477,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Quarantine: false'
+  m_Text: 0 are in quarantine
 --- !u!222 &979816153
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1657,7 +1663,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Symptoms: false'
+  m_Text: 0 contracted symptoms
 --- !u!222 &1018136073
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1843,6 +1849,7 @@ Transform:
   - {fileID: 1206495702}
   - {fileID: 647544237}
   - {fileID: 2055066557}
+  - {fileID: 345413809}
   - {fileID: 1947864278}
   m_Father: {fileID: 714597444}
   m_RootOrder: 2
@@ -3160,8 +3167,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 150, y: -150}
-  m_SizeDelta: {x: 300, y: 300}
+  m_AnchoredPosition: {x: 222.3324, y: -163.29001}
+  m_SizeDelta: {x: 444.6648, y: 326.58}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1862773934
 MonoBehaviour:
@@ -3227,6 +3234,67 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1862773932}
   m_CullTransparentMesh: 0
+--- !u!1001 &1884304263
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 1148339712}
+    m_Modifications:
+    - target: {fileID: 8728913679292916583, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_Name
+      value: GoalsFinished
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916583, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_TagString
+      value: Goals
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_RootOrder
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -89.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8728913679292916584, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e353d78431ef8934985bb75ed40b31bc, type: 3}
 --- !u!1 &1947864277
 GameObject:
   m_ObjectHideFlags: 0
@@ -3264,7 +3332,7 @@ Transform:
   - {fileID: 1049166773}
   - {fileID: 1572702513}
   m_Father: {fileID: 1148339712}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2030638095
 PrefabInstance:

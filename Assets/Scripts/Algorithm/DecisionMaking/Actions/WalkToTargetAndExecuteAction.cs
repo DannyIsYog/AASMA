@@ -7,19 +7,19 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 {
     public abstract class WalkToTargetAndExecuteAction : Action
     {
-        protected AgentControl person { get; set; }
+        protected AgentControl agent { get; set; }
 
         public GameObject target { get; set; }
 
-        protected WalkToTargetAndExecuteAction(string actionName, AgentControl person, GameObject target) : base(actionName + "(" + target.name + ")")
+        protected WalkToTargetAndExecuteAction(string actionName, AgentControl agent, GameObject target) : base(actionName + "(" + target.name + ")")
         {
-            this.person = person;
+            this.agent = agent;
             this.target = target;
         }
 
         public override float GetDuration()
         {
-            return this.GetDuration(this.person.transform.position);
+            return this.GetDuration(this.agent.transform.position);
         }
 
         public override float GetDuration(WorldModel worldModel)
@@ -31,7 +31,7 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
         private float GetDuration(Vector3 currentPosition)
         {
             var distance = getDistance(currentPosition, target.transform.position);
-            var result = distance / this.person.maxSpeed;
+            var result = distance / this.agent.maxSpeed;
             return result;
         }
 
@@ -59,10 +59,10 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 
         public override void Execute()
         {
-            Vector3 delta = this.target.transform.position - this.person.transform.position;
+            Vector3 delta = this.target.transform.position - this.agent.transform.position;
             
             if (delta.sqrMagnitude > 5 )
-               this.person.StartPathfinding(this.target.transform.position);
+               this.agent.StartPathfinding(this.target.transform.position);
         }
 
 
@@ -80,7 +80,7 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 
         private float getDistance(Vector3 currentPosition, Vector3 targetPosition)
         {        
-            var distance = this.person.GetDistanceToTarget(currentPosition, targetPosition);
+            var distance = this.agent.GetDistanceToTarget(currentPosition, targetPosition);
             return distance;
         }
 

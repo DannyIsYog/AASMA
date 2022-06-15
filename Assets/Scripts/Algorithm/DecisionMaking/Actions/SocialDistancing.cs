@@ -2,6 +2,7 @@
 using Assets.Scripts.GameManager;
 using Assets.Scripts.Algorithm.DecisionMaking.ForwardModel;
 using Assets.Scripts.Agent;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
@@ -10,14 +11,14 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
     {
         private AgentControl agent;
         private GameObject target;
-        private float goalChange = 20.0f;
+        private float goalChange = 2f;
 
         private float SOCIAL_INTERVAL = 10f;
-        private float socialTime = 0;
         public SocialDistancing(AgentControl agent, GameObject target) : base("SocialDistancing", agent, target)
         {
             this.agent = agent;
             this.target = target;
+            this.goalChange = this.agent.agentData.personality.protectValue;
         }
 
         public override float GetGoalChange(Goal goal)
@@ -30,16 +31,16 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 
         public override bool CanExecute(WorldModel worldModel)
         {
-            if (Time.time > socialTime && agent.agentData.socialDistance && !agent.socialDistancing)
-                return true;
-
-            return false;
+            return agent.agentData.socialDistance && !agent.doingTask;
         } 
         public override void Execute()
         {
             base.Execute();
+            
+            Vector3 direction = agent.transform.position + Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0) * (Vector3.right*2);
+            //Vector3 direction = (agent.transform.position - target.transform.position).normalized;  
+            agent.StartPathfinding(direction);
             agent.SocialDistance(target);
-            socialTime += Time.time + SOCIAL_INTERVAL;
         }
 
         public override void ApplyActionEffects(WorldModel worldModel)

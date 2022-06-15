@@ -12,6 +12,7 @@ namespace Assets.Scripts.Agent
         public bool quarantined { get; set; }
         public bool usingMask { get; set; }
         public bool socialDistance { get; set; }
+        public bool goalsDone { get; set; }
         public float time { get; set; }
         public List<string> disposableActions { get; set; }
 
@@ -33,6 +34,7 @@ namespace Assets.Scripts.Agent
             this.quarantined = false;
             this.usingMask = false;
             this.socialDistance = false;
+            this.goalsDone = false;
             this.time = 0;
             this.personality = personality;
             disposableActions = new List<string>();

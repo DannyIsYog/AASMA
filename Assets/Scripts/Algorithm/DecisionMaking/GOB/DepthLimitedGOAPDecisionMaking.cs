@@ -50,8 +50,17 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.GOB
             var processedActions = 0;
 
             var startTime = Time.realtimeSinceStartup;
-
+            
             while(this.CurrentDepth >= 0) {
+
+                /*foreach (Action action in ActionPerLevel)
+                {
+                    if (action.name == "GoalsFinished" && CurrentDepth == 0)
+                        return action;
+                    else if (action.name == "Quarantine" && CurrentDepth == 0)
+                        return action;
+                }*/
+
                 if(CurrentDepth >= MAX_DEPTH) {
                     float value = Models[CurrentDepth].CalculateDiscontentment(goals);
                     
@@ -62,14 +71,12 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.GOB
                            BestActionSequence[i] = ActionPerLevel[i];
                     }
 
-                       CurrentDepth --;
+                    CurrentDepth --;
                 }
                 else {
                     Action nextAction = Models[CurrentDepth].GetNextAction();
                     if(nextAction != null) {
                         
-                        if(nextAction.name == "Quarantine" && CurrentDepth == 0) 
-                            return nextAction;
                         if(nextAction.name == "Test" && CurrentDepth == 0) 
                             return nextAction;
 

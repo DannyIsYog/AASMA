@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.AI;
@@ -7,6 +8,7 @@ using Assets.Scripts.Algorithm.DecisionMaking.ForwardModel;
 using Assets.Scripts.Algorithm.DecisionMaking.GOB;
 using Assets.Scripts.Algorithm.DecisionMaking.Actions;
 using TMPro;
+using Unity.VisualScripting;
 
 namespace Assets.Scripts.Agent
 {
@@ -17,9 +19,8 @@ namespace Assets.Scripts.Agent
         public const string PROTECT_GOAL = "Noninfected";
         public const string BE_QUICK_GOAL = "BeQuick";
 
-        public const float DECISION_MAKING_INTERVAL = 200.0f;
+        public const float DECISION_MAKING_INTERVAL = 20.0f;
         public const float GOAL_CHANGING_INTERVAL = 20.0f;
-        public const float SOCIAL_DISTANCING_INTERVAL = 20.0f;
         public const float TEST_INTERVAL = 20.0f;
         public const float TRIGGER_INTERVAL = 1.0f;
 
@@ -40,12 +41,6 @@ namespace Assets.Scripts.Agent
         [Header("Character Settings")]  
         public float controlledSpeed;
 
-        [Header("Decision Algorithm Options")]
-        public bool GOBActive;
-        public bool GOAPActive;
-
-        public float StopRestTime;
-
         //Goals
         public Goal doTasksGoal { get; private set; }
         public Goal protectGoal { get; private set; }
@@ -54,6 +49,7 @@ namespace Assets.Scripts.Agent
         public List<Goal> Goals { get; set; }
         public List<Action> Actions { get; set; }
         public Action currentAction { get; private set; }
+        public Action previousAction { get; private set; }
         public DepthLimitedGOAPDecisionMaking GOAPDecisionMaking { get; set; }
 
         //private fields for internal use only
@@ -72,15 +68,13 @@ namespace Assets.Scripts.Agent
 
         //agent variables
         public AgentData agentData;
-        public Building quarantineCenter;
+        public GameObject quarantineCenter;
         public bool worldChanged = false;
         public float testInterval = 0.0f;
         private int agentsAroundMe = 0;
         private float triggerTime = 0;
-        public int infectionProbability = 10;
         public float timeOfContact = 0f;
-        private bool doingTask = false;
-        public bool socialDistancing = false;
+        public bool doingTask = false;
 
         public void Init(GameObject person, Personality p)
         {
@@ -106,18 +100,14 @@ namespace Assets.Scripts.Agent
             this.BestActionSequence = GameObject.Find("BestActionSequence").GetComponent<Text>();
             this.DiaryText = GameObject.Find("DiaryText").GetComponent<Text>();
 
-            this.origin = this.transform.position;
-
             // generate agent goals
             GenerateGoals();
             // generate actions
-            GenerateActions();
+            StartCoroutine(GenerateActions());
 
             // Initialization of Decision Making Algorithms
             var worldModel = new CurrentStateWorldModel(agentData, GameManager, this.Actions, this.Goals);
             this.GOAPDecisionMaking = new DepthLimitedGOAPDecisionMaking(worldModel, this.Actions, this.Goals);
-            
-            DiaryText.text += "My Diary \n I awoke. What a wonderful day to NOT spread a virus! \n";
         }
 
         void Update()
@@ -130,8 +120,11 @@ namespace Assets.Scripts.Agent
             {
                 int r = Random.Range(0,100);
 
-                if (r < 10)
+                if (r < GameManager.symptomsProbability*agentData.personality.proneToSymptoms && !agentData.symptoms)
+                {
                     agentData.symptoms = true;
+                    GameManager.symptomsNumber++;
+                }
 
                 this.worldChanged = false;
                 this.nextUpdateTime = Time.time + DECISION_MAKING_INTERVAL;
@@ -142,7 +135,10 @@ namespace Assets.Scripts.Agent
                 if(this.doTasksGoal.insistenceValue > 10.0f)
                     this.doTasksGoal.insistenceValue = 100.0f;
 
-                this.protectGoal.insistenceValue += this.protectGoal.changeRate;
+                if(agentData.tested && !agentData.quarantined)
+                    this.protectGoal.insistenceValue += this.protectGoal.changeRate*5;
+                else
+                    this.protectGoal.insistenceValue += this.protectGoal.changeRate;
                 if(this.protectGoal.insistenceValue > 10.0f)
                     this.protectGoal.insistenceValue = 100.0f;
 
@@ -172,17 +168,17 @@ namespace Assets.Scripts.Agent
             //this.Goals = agentData.GenerateGoals();
             this.doTasksGoal = new Goal(DO_TASKS_GOAL, 5f)
             {
-                changeRate = 0.05f
+                changeRate = agentData.personality.tasksChangeRate
             };
 
             this.protectGoal = new Goal(PROTECT_GOAL, 5f)
             {
-                changeRate = 0.05f
+                changeRate = agentData.personality.protectChangeRate
             };
 
             this.beQuickGoal = new Goal(BE_QUICK_GOAL, 3f)
             {
-                changeRate = 0.02f
+                changeRate = agentData.personality.quickChangeRate
             };
 
             this.Goals = new List<Goal>();
@@ -191,37 +187,38 @@ namespace Assets.Scripts.Agent
             this.Goals.Add(this.protectGoal);
         }
 
-        public void GenerateActions()
+        public System.Collections.IEnumerator GenerateActions()
         {
             this.Actions = new List<Action>();
 
             // Egocentric types do not protect, test or quarantine
-            if (agentData.personality.GetType() != typeof(EgocentricAgent)){
+            if (agentData.personality.GetType() != typeof(EgocentricAgent))
+            {
 
                 this.Actions.Add(new UseMask(this));
 
                 // spawn of agent
-                foreach (var quarantine in GameObject.FindGameObjectsWithTag("Quarantine"))
-                    this.Actions.Add(new Quarantine(this, quarantine));
+                this.Actions.Add(new Quarantine(this, quarantineCenter));
 
                 foreach (var hospital in GameObject.FindGameObjectsWithTag("Hospital"))
                     this.Actions.Add(new Test(this, hospital));
 
-                foreach (var a in GameObject.FindGameObjectsWithTag("Agent"))
-                {
-                    if (a == this.gameObject)
-                        continue;
-                    this.Actions.Add(new SocialDistancing(this, a));
-                }
+                
             }
+            
+            foreach (var goal in GameObject.FindGameObjectsWithTag("Goals"))
+                this.Actions.Add(new GoalsFinished(this, goal));
 
+            foreach (var a in GameObject.FindGameObjectsWithTag("Agent"))
+            {
+                if (a == this.gameObject)
+                    continue;
+                this.Actions.Add(new SocialDistancing(this, a));
+            }
 
             for(int i = 0; i < actionsNumber; i++){
 
                 //TODO verification no more actions than those that exist
-                if (actionsNumber > System.Enum.GetValues(typeof(Building.BuildingTypes)).Length)
-                    return;
-
                 List<int> randomList = new List<int>();
                 int r = Random.Range(1,6);
 
@@ -266,7 +263,9 @@ namespace Assets.Scripts.Agent
                 }
             }
 
-        init = true;
+            yield return null;
+
+            init = true;
         }
 
         public void AddToDiary(string s)
@@ -366,17 +365,19 @@ namespace Assets.Scripts.Agent
                         newList.Remove(action);
                 
                 agentData.disposableActions = new List<string>(newList);
+                if (!agentData.disposableActions.Any() && !agentData.goalsDone)
+                {
+                    agentData.goalsDone = true;
+                    GameManager.goalsNumber++;
+                }
 
                 StartCoroutine(WaitAction(building, delay));
                 building.GetComponent<Building>().numberOfPeople--;
-                this.worldChanged = true;
-
             }
         }
 
         public void UseMask()
         {
-            this.AddToDiary(" I put on a mask");
             agentData.usingMask = true;
             GameManager.protectingNumber++;
             this.worldChanged = true;
@@ -405,22 +406,25 @@ namespace Assets.Scripts.Agent
             if(InBuildingRange(building))
             {
                 this.AddToDiary(" I went to quarantine");
-                building.GetComponent<Building>().numberOfPeople++;
-                StartCoroutine(WaitAction(building, delay));
                 agentData.quarantined = true;
+                StartCoroutine(WaitAction(null, delay));
+                doingTask = true;
                 GameManager.quarantinedNumber++;
-                this.worldChanged = true;
+            }
+        }
+        public void GoalsDone(GameObject building, float delay)
+        {
+            if(InBuildingRange(building))
+            {
+                this.AddToDiary(" I finished everything");
+                StartCoroutine(WaitAction(null, delay));
             }
         }
 
         public void SocialDistance(GameObject target)
         {
-            Debug.Log("i am social distancing from " + target);
-            Vector3 direction = transform.position + Quaternion.Euler(0, Random.Range(0, 360), 0) * Vector3.right;
-            StartPathfinding(direction);
-            socialDistancing = true;
+            StartCoroutine(Distancing(3f));
         }
-
         private bool CheckForInfection()
         {
             int r = Random.Range(0,100);
@@ -437,18 +441,45 @@ namespace Assets.Scripts.Agent
                 return true;
             }
 
-            //if(r < ((agentsAroundMe*infectionProbability) + timeOfContact - usingMask))
-            //Debug.Log(((agentsAroundMe*infectionProbability) + timeOfContact - usingMask));
+            if (r < ((agentsAroundMe * GameManager.infectionProbability) + timeOfContact - usingMask))
+            {
+                Debug.Log((agentsAroundMe * GameManager.infectionProbability) + timeOfContact - usingMask);
+                Debug.Log(timeOfContact);
+            }
 
-            return r < ((agentsAroundMe*infectionProbability) + timeOfContact - usingMask);
+            return r < ((agentsAroundMe*GameManager.infectionProbability) + timeOfContact - usingMask);
+        }
+
+        private System.Collections.IEnumerator Distancing(float delay)
+        {
+            doingTask = true;
+            yield return new WaitForSeconds(delay);
+            doingTask = false;
+            
+            if (this.previousAction != null && previousAction.name != "SocialDistancing")
+            {
+                currentAction = previousAction;
+                if (this.currentAction.CanExecute())
+                    this.currentAction.Execute();
+            }
+            else
+                worldChanged = true;
+            
+            agentData.socialDistance = false;
+
         }
 
         private System.Collections.IEnumerator WaitAction(GameObject building, float delay){
-            building.GetComponent<Building>().numberOfPeople++;
+            if(building != null)
+                building.GetComponent<Building>().numberOfPeople++;
             doingTask = true;
+            
             yield return new WaitForSeconds(delay);
-            building.GetComponent<Building>().numberOfPeople--;
+            
+            if(building != null)
+                building.GetComponent<Building>().numberOfPeople--;
             doingTask = false;
+            this.worldChanged = true;
         }
 
         private bool CheckRange(GameObject obj, float maximumSqrDistance)
@@ -464,17 +495,24 @@ namespace Assets.Scripts.Agent
 
         void OnTriggerEnter(Collider coll)
         {
-            protectGoal.insistenceValue += protectGoal.changeRate;
-            agentData.socialDistance = true;
-            socialDistancing = true;
-            agentsAroundMe++;
+            if (!doingTask && !agentData.goalsDone)
+            {
+                if (agentData.personality.GetType() != typeof(EgocentricAgent)){
+                    previousAction = currentAction;
+                    protectGoal.insistenceValue += protectGoal.changeRate;
+                    agentData.socialDistance = true;
+                    worldChanged = true;
+                }
+                agentsAroundMe++;
+            }
         }
 
         void OnTriggerStay(Collider coll)
         {
+            
             if(Time.time > triggerTime && !agentData.symptoms){
                 triggerTime += Time.time + TRIGGER_INTERVAL;
-                if(CheckForInfection()){
+                if(!agentData.infected && CheckForInfection()){
                     agentData.infected = true;
                     GameManager.infectedNumber++;
 
@@ -495,10 +533,8 @@ namespace Assets.Scripts.Agent
 
         void OnTriggerExit(Collider coll)
         {
-            Debug.Log("Exiting");
-            protectGoal.insistenceValue -= protectGoal.changeRate;
-            //agentData.socialDistance = false;
-            //socialDistancing = false;
+            if(agentData.personality.GetType() != typeof(EgocentricAgent))
+                protectGoal.insistenceValue -= protectGoal.changeRate;
 
             agentsAroundMe--;
         }

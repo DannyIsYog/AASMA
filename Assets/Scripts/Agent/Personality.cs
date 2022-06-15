@@ -15,6 +15,8 @@ namespace Assets.Scripts.Agent{
         public float protectChangeRate = 0f;
         public float quickChangeRate = 0f;
 
+        public float proneToSymptoms = 0f;
+
         protected abstract void SetPersonality();
 
     }

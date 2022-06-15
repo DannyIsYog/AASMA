@@ -12,6 +12,7 @@ TagManager:
   - Park
   - Work
   - Agent
+  - Goals
   layers:
   - Default
   - TransparentFX

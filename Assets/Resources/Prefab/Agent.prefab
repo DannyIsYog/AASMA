@@ -335,7 +335,7 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 1.4845886
+  m_Radius: 3.9211044
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!195 &3018107767424588607
 NavMeshAgent:
@@ -372,17 +372,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controlledSpeed: 10
-  GOBActive: 0
-  GOAPActive: 1
-  StopRestTime: 10
   playerText: {fileID: 1742658843263746129}
   actionsNumber: 3
   init: 0
   quarantineCenter: {fileID: 0}
   worldChanged: 0
   testInterval: 0
-  infectionProbability: 10
   timeOfContact: 0
+  doingTask: 0
 --- !u!54 &513467422930860536
 Rigidbody:
   m_ObjectHideFlags: 0
