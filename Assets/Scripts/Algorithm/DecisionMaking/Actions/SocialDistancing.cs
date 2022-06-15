@@ -1,58 +1,65 @@
-﻿using Assets.Scripts.GameManager;
+﻿using System;
+using Assets.Scripts.GameManager;
 using Assets.Scripts.Algorithm.DecisionMaking.ForwardModel;
 using Assets.Scripts.Agent;
 using UnityEngine;
 
 namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 {
-    public class SocialDistancing : WalkToTargetAndExecuteAction
+    public class SocialDistancing : WalkToTargetAndExecuteAction, IEquatable<SocialDistancing>
     {
-
-        public SocialDistancing(AgentControl person, GameObject target) : base("SocialDistancing", person, target)
+        private AgentControl agent;
+        private GameObject target;
+        private float goalChange = 20.0f;
+        public SocialDistancing(AgentControl agent, GameObject target) : base("SocialDistancing", agent, target)
         {
+            this.agent = agent;
+            this.target = target;
         }
 
         public override float GetGoalChange(Goal goal)
         {
             var change = base.GetGoalChange(goal);
-            /*if (goal.name == person.GET_RICH_GOAL) 
-                change -= 2.0f;*/
+            if (goal.name == AgentControl.PROTECT_GOAL)
+                change -= goalChange;
             return change;
-        }
-
-        public override bool CanExecute()
-        {
-
-            if (!base.CanExecute())
-                return false;
-            return true;
         }
 
         public override bool CanExecute(WorldModel worldModel)
         {
-            if (!base.CanExecute(worldModel)) return false;
-            return true;
-        }
+            if (agent.agentData.socialDistance)
+                return true;
 
+            return false;
+        } 
         public override void Execute()
         {
-            
             base.Execute();
-            //this.Character.GameManager.PickUpChest(this.Target);
+            agent.SocialDistance(target);
         }
 
         public override void ApplyActionEffects(WorldModel worldModel)
         {
             base.ApplyActionEffects(worldModel);
 
-            /*var goalValue = worldModel.GetGoalValue(Person.GET_RICH_GOAL);
-            worldModel.SetGoalValue(Person.GET_RICH_GOAL, goalValue - 2.0f);
-
-            var money = (int)worldModel.GetProperty(Properties.MONEY);
-            worldModel.SetProperty(Properties.MONEY, money + 5);
-
-            //disables the target object so that it can't be reused again
-            worldModel.SetProperty(this.Target.name, false);*/
+            var goalValue = worldModel.GetGoalValue(AgentControl.PROTECT_GOAL);
+            worldModel.SetGoalValue(AgentControl.PROTECT_GOAL, goalValue - goalChange);
+        }
+        
+        public bool Equals(SocialDistancing obj)
+        {
+            if (obj == null) 
+                return false;
+            
+            SocialDistancing objAsPart = obj as SocialDistancing;
+            if (objAsPart == null)
+                return false;
+            else
+                return target.Equals(objAsPart.target);
+        }
+        public override int GetHashCode()
+        {
+            return target.GetHashCode();
         }
 
     }

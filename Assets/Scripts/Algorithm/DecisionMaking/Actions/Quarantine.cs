@@ -25,8 +25,9 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 
         public override bool CanExecute(WorldModel worldModel)
         {
-            if (agent.agentData.infected)
+            if (agent.agentData.tested && agent.agentData.infected){
                 return true;
+            }
             return false;
         }
 

@@ -19,9 +19,9 @@ namespace Assets.Scripts.Agent
 
         public const float DECISION_MAKING_INTERVAL = 200.0f;
         public const float GOAL_CHANGING_INTERVAL = 20.0f;
+        public const float SOCIAL_DISTANCING_INTERVAL = 20.0f;
         public const float TEST_INTERVAL = 20.0f;
-        /*public const float RESTING_INTERVAL = 5.0f;
-        public const int REST_HP_RECOVERY = 2;*/
+        public const float TRIGGER_INTERVAL = 1.0f;
 
         //UI Variables
         private Text DoTasksGoalText;
@@ -44,30 +44,16 @@ namespace Assets.Scripts.Agent
         public bool GOBActive;
         public bool GOAPActive;
 
-        [Header("Character Info")]
-        public bool symptoms = false;
-        public bool infected = false;
-        public bool quarantine = false;
-        //public bool Resting = false;
         public float StopRestTime;
 
         //Goals
         public Goal doTasksGoal { get; private set; }
         public Goal protectGoal { get; private set; }
         public Goal beQuickGoal { get; private set; }
-        public Goal goHospitalGoal { get; private set; }
-        public Goal goSupermarketGoal { get; private set; }
-        public Goal goBankGoal { get; private set; }
-        public Goal goRestaurantGoal { get; private set; }
-        public Goal goParkGoal { get; private set; }
-        public Goal goWorkGoal { get; private set; }
-
-    
 
         public List<Goal> Goals { get; set; }
         public List<Action> Actions { get; set; }
         public Action currentAction { get; private set; }
-        public GOBDecisionMaking GOBDecisionMaking { get; set; }
         public DepthLimitedGOAPDecisionMaking GOAPDecisionMaking { get; set; }
 
         //private fields for internal use only
@@ -89,7 +75,11 @@ namespace Assets.Scripts.Agent
         public Building quarantineCenter;
         public bool worldChanged = false;
         public float testInterval = 0.0f;
-
+        private int agentsAroundMe = 0;
+        private float triggerTime = 0;
+        public int infectionProbability = 10;
+        public float timeOfContact = 0f;
+        private bool doingTask = false;
 
         public void Init(GameObject person, Personality p)
         {
@@ -131,12 +121,17 @@ namespace Assets.Scripts.Agent
 
         void Update()
         {
-            if (!init || GameManager.gameEnded || agentData.quarantined) 
+            if (!init || GameManager.gameEnded || agentData.quarantined || doingTask) 
                 return;
 
             //Every x amount of times we've got to update things
             if (Time.time > this.nextUpdateTime || this.worldChanged)
             {
+                int r = Random.Range(0,100);
+
+                if (r < 10)
+                    agentData.symptoms = true;
+
                 this.worldChanged = false;
                 this.nextUpdateTime = Time.time + DECISION_MAKING_INTERVAL;
 
@@ -210,6 +205,13 @@ namespace Assets.Scripts.Agent
 
                 foreach (var hospital in GameObject.FindGameObjectsWithTag("Hospital"))
                     this.Actions.Add(new Test(this, hospital));
+
+                foreach (var a in GameObject.FindGameObjectsWithTag("Agent"))
+                {
+                    if (a == this.gameObject)
+                        continue;
+                    this.Actions.Add(new SocialDistancing(this, a));
+                }
             }
 
 
@@ -228,7 +230,6 @@ namespace Assets.Scripts.Agent
                 randomList.Add(r);
 
                 Building.BuildingTypes actionName = (Building.BuildingTypes) r;
-                Debug.Log(actionName.ToString());
                 switch(actionName)
                 {
                     case Building.BuildingTypes.Hospital:
@@ -278,17 +279,13 @@ namespace Assets.Scripts.Agent
 
         private void UpdateDLGOAP()
         {
-            bool newDecision = false;
             if (this.GOAPDecisionMaking.InProgress)
             {
                 //choose an action using the GOB Decision Making process
                 var action = this.GOAPDecisionMaking.ChooseAction();
 
                 if (action != null && action != this.currentAction)
-                {
                     this.currentAction = action;
-                    newDecision = true;
-                }
             }
 
             this.TotalProcessingTimeText.text = "Process. Time: " + this.GOAPDecisionMaking.TotalProcessingTime.ToString("F");
@@ -297,9 +294,6 @@ namespace Assets.Scripts.Agent
 
             if (this.GOAPDecisionMaking.BestAction != null)
             {
-                if (newDecision)
-                    AddToDiary("I decided to " + GOAPDecisionMaking.BestAction.name);
-
                 var actionText = "";
                 foreach (var action in this.GOAPDecisionMaking.BestActionSequence)
                     if(action != null) actionText += "\n" + action.name;
@@ -364,9 +358,6 @@ namespace Assets.Scripts.Agent
         {
             if(InBuildingRange(building))
             {
-                                
-                this.AddToDiary("I went to " + building.name );
-
                 List<string> newList = new List<string>(agentData.disposableActions);
 
                 foreach(string action in agentData.disposableActions)
@@ -375,13 +366,8 @@ namespace Assets.Scripts.Agent
                 
                 agentData.disposableActions = new List<string>(newList);
 
-                StartCoroutine(WaitAction(building.name, delay));
-
-                if(CheckForSymptoms()){
-                    agentData.symptoms = true;
-                    GameManager.symptomsNumber++;
-                }
-
+                StartCoroutine(WaitAction(building, delay));
+                building.GetComponent<Building>().numberOfPeople--;
                 this.worldChanged = true;
 
             }
@@ -399,18 +385,14 @@ namespace Assets.Scripts.Agent
         {
             if(InBuildingRange(building)){
                 int r = Random.Range(0,100);
-                bool result = false;
-                if (r < 50)
-                    result = true;
-            
-                this.AddToDiary("I tested myself and it came back " + result);
+                this.AddToDiary(" I tested myself and it came back " + agentData.infected);
 
-                if(result){
-                    agentData.infected = true;
-                    GameManager.infectedNumber++;
-                }
-                else
+                if(agentData.infected)
+                    agentData.tested = true;
+                else{
                     agentData.symptoms = false;
+                    GameManager.symptomsNumber--;
+                }
 
                 testInterval = Time.time + TEST_INTERVAL;
                 this.worldChanged = true;
@@ -421,20 +403,28 @@ namespace Assets.Scripts.Agent
         {
             if(InBuildingRange(building))
             {
-                this.AddToDiary( " I went to " + building.name );
-                StartCoroutine(WaitAction(building.name, delay));
+                this.AddToDiary(" I went to quarantine");
+                building.GetComponent<Building>().numberOfPeople++;
+                StartCoroutine(WaitAction(building, delay));
                 agentData.quarantined = true;
                 GameManager.quarantinedNumber++;
                 this.worldChanged = true;
             }
         }
 
-        private bool CheckForSymptoms()
+        public void SocialDistance(GameObject target)
+        {
+            Vector3 direction = transform.position + (transform.position - target.transform.position).normalized;
+            StartPathfinding(direction);
+        }
+
+        private bool CheckForInfection()
         {
             int r = Random.Range(0,100);
+            float usingMask = 0;
 
             if(agentData.usingMask)
-                return r < 25;
+                usingMask = 10;
             
             if(agentData.quarantined){
                 /*agentData.symptoms = false;
@@ -444,11 +434,18 @@ namespace Assets.Scripts.Agent
                 return true;
             }
 
-            return r < 50;
+            //if(r < ((agentsAroundMe*infectionProbability) + timeOfContact - usingMask))
+            //Debug.Log(((agentsAroundMe*infectionProbability) + timeOfContact - usingMask));
+
+            return r < ((agentsAroundMe*infectionProbability) + timeOfContact - usingMask);
         }
 
-        private System.Collections.IEnumerator WaitAction(string building, float delay){
+        private System.Collections.IEnumerator WaitAction(GameObject building, float delay){
+            building.GetComponent<Building>().numberOfPeople++;
+            doingTask = true;
             yield return new WaitForSeconds(delay);
+            building.GetComponent<Building>().numberOfPeople--;
+            doingTask = false;
         }
 
         private bool CheckRange(GameObject obj, float maximumSqrDistance)
@@ -460,6 +457,46 @@ namespace Assets.Scripts.Agent
         public bool InBuildingRange(GameObject building)
         {
             return this.CheckRange(building, 16.0f);
+        }
+
+        void OnTriggerEnter(Collider coll)
+        {
+            Debug.Log("hahahahah");
+            protectGoal.insistenceValue += protectGoal.changeRate;
+            agentData.socialDistance = true;
+            agentsAroundMe++;
+        }
+
+        void OnTriggerStay(Collider coll)
+        {
+            if(Time.time > triggerTime && !agentData.symptoms){
+                triggerTime += Time.time + TRIGGER_INTERVAL;
+                if(CheckForInfection()){
+                    agentData.infected = true;
+                    GameManager.infectedNumber++;
+
+                    int r = Random.Range(0,100);
+
+                    if(r <= 50){
+                        agentData.symptoms = true;
+                        GameManager.symptomsNumber++;
+                    }
+
+                }
+
+                if(coll.GetComponent<AgentControl>() != null && coll.GetComponent<AgentControl>().agentData.infected)
+                    timeOfContact += 0.5f;
+            }
+
+        }
+
+        void OnTriggerExit(Collider coll)
+        {
+            protectGoal.insistenceValue -= protectGoal.changeRate;
+            agentData.socialDistance = false;
+            //this.Actions.Remove(new SocialDistancing(this, coll.gameObject));
+
+            agentsAroundMe--;
         }
     }
 }

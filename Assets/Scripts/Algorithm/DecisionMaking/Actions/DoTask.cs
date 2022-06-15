@@ -9,10 +9,12 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
     {
 
         private AgentControl agent;
+        public float delay;
 
         public DoTask(string actionName, AgentControl agent, GameObject target) : base(actionName, agent, target)
         {
             this.agent = agent;
+            this.delay = 0f;
         }
 
         public override float GetGoalChange(Goal goal)
@@ -21,6 +23,8 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
             if (goal.name == AgentControl.DO_TASKS_GOAL) 
                 change -= 2.0f;
             return change;
+
+            
         }
 
         public override bool CanExecute(WorldModel worldModel)
@@ -33,7 +37,7 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
         public override void Execute()
         {
             base.Execute();
-            agent.GoBuilding(this.target , 0f);
+            agent.GoBuilding(this.target , delay);
         }
 
         public override void ApplyActionEffects(WorldModel worldModel)
@@ -42,6 +46,11 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
 
             var goalValue = worldModel.GetGoalValue(AgentControl.DO_TASKS_GOAL);
             worldModel.SetGoalValue(AgentControl.DO_TASKS_GOAL, goalValue - 2.0f);
+        }
+
+        public void SetDelay(float delay)
+        {
+            this.delay = delay;
         }
 
     }

@@ -8,9 +8,10 @@ namespace Assets.Scripts.Agent
     {
         public bool symptoms { get; set; }
         public bool infected { get; set; }
+        public bool tested { get; set; }
         public bool quarantined { get; set; }
         public bool usingMask { get; set; }
-        public int score { get; set; }
+        public bool socialDistance { get; set; }
         public float time { get; set; }
         public List<string> disposableActions { get; set; }
 
@@ -28,9 +29,10 @@ namespace Assets.Scripts.Agent
             this.agentGameObject = gameObject;
             this.symptoms = false;
             this.infected = false;
+            this.tested = false;
             this.quarantined = false;
             this.usingMask = false;
-            this.score = 0;
+            this.socialDistance = false;
             this.time = 0;
             this.personality = personality;
             disposableActions = new List<string>();

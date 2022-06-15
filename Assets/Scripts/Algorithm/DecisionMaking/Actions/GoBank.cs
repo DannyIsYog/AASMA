@@ -8,17 +8,13 @@ namespace Assets.Scripts.Algorithm.DecisionMaking.Actions
     public class GoBank : DoTask
     {
 
-        private AgentControl agent;
+        private float increaseinDelay = 0.5f;
+
         public GoBank(AgentControl agent, GameObject target) : base("GoBank", agent, target)
         {
-            this.agent = agent;
+            base.SetDelay(target.GetComponent<Building>().delay + (target.GetComponent<Building>().numberOfPeople*increaseinDelay));
         }
 
-        public override void Execute()
-        {
-            base.Execute();
-            //agent.GoBuilding(this.target , 5f);
-        }
 
     }
 }

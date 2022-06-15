@@ -5,7 +5,7 @@ using Assets.Scripts.Algorithm.DecisionMaking.ForwardModel;
 
 public class Building : MonoBehaviour
 {
-    public int numberOfPeople; // how many people are inside the building
+    public int numberOfPeople = 0; // how many people are inside the building
     public float taskLenght; // how long the task takes, in seconds
     public BuildingTypes typeOfBuilding;
 
