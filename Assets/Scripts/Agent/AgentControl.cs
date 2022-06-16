@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.AI;
-using Assets.Scripts.GameManager;
+using Assets.Scripts.Algorithm.DecisionMaking.Actions;
 using Assets.Scripts.Algorithm.DecisionMaking.ForwardModel;
 using Assets.Scripts.Algorithm.DecisionMaking.GOB;
-using Assets.Scripts.Algorithm.DecisionMaking.Actions;
+using Assets.Scripts.GameManager;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.UI;
 
 namespace Assets.Scripts.Agent
 {
@@ -38,8 +38,9 @@ namespace Assets.Scripts.Agent
 
         public GameManager.GameManager GameManager { get; private set; }
 
-        [Header("Character Settings")]  
+        [Header("Character Settings")]
         public float controlledSpeed;
+        public List<AgentData> agentsAroundMeList = new List<AgentData>();
 
         //Goals
         public Goal doTasksGoal { get; private set; }
@@ -57,7 +58,7 @@ namespace Assets.Scripts.Agent
         private float nextUpdateTime = 0.0f;
 
         //This speed is only a pointer to the NavMeshAgent's speed
-        public float maxSpeed {get; private set;}
+        public float maxSpeed { get; private set; }
         public TextMeshProUGUI playerText;
         private GameObject closestObject;
 
@@ -71,7 +72,7 @@ namespace Assets.Scripts.Agent
         public GameObject quarantineCenter;
         public bool worldChanged = false;
         public float testInterval = 0.0f;
-        private int agentsAroundMe = 0;
+        //private int agentsAroundMe = 0;
         private float triggerTime = 0;
         public float timeOfContact = 0f;
         public bool doingTask = false;
@@ -91,7 +92,7 @@ namespace Assets.Scripts.Agent
             this.DoTasksGoalText = GameObject.Find("DoTasksGoal").GetComponent<Text>();
             this.ProtectGoalText = GameObject.Find("ProtectGoal").GetComponent<Text>();
             this.BeQuickGoalText = GameObject.Find("BeQuickGoal").GetComponent<Text>();
-            
+
             this.DiscontentmentText = GameObject.Find("Discontentment").GetComponent<Text>();
             this.TotalProcessingTimeText = GameObject.Find("ProcessTime").GetComponent<Text>();
             this.BestDiscontentmentText = GameObject.Find("BestDis").GetComponent<Text>();
@@ -112,15 +113,15 @@ namespace Assets.Scripts.Agent
 
         void Update()
         {
-            if (!init || GameManager.gameEnded || agentData.quarantined || doingTask) 
+            if (!init || GameManager.gameEnded || agentData.quarantined || doingTask)
                 return;
 
             //Every x amount of times we've got to update things
             if (Time.time > this.nextUpdateTime || this.worldChanged)
             {
-                int r = Random.Range(0,100);
+                int r = Random.Range(0, 100);
 
-                if (r < GameManager.symptomsProbability*agentData.personality.proneToSymptoms && !agentData.symptoms)
+                if (r < GameManager.symptomsProbability * agentData.personality.proneToSymptoms && !agentData.symptoms)
                 {
                     agentData.symptoms = true;
                     GameManager.symptomsNumber++;
@@ -131,19 +132,19 @@ namespace Assets.Scripts.Agent
 
                 //first step, perceptions
                 //update the agent's goals based on the state of the world
-                this.doTasksGoal.insistenceValue +=  this.doTasksGoal.changeRate; //- tasks left to do ;
-                if(this.doTasksGoal.insistenceValue > 10.0f)
+                this.doTasksGoal.insistenceValue += this.doTasksGoal.changeRate; //- tasks left to do ;
+                if (this.doTasksGoal.insistenceValue > 10.0f)
                     this.doTasksGoal.insistenceValue = 100.0f;
 
-                if(agentData.tested && !agentData.quarantined)
-                    this.protectGoal.insistenceValue += this.protectGoal.changeRate*5;
+                if (agentData.tested && !agentData.quarantined)
+                    this.protectGoal.insistenceValue += this.protectGoal.changeRate * 5;
                 else
                     this.protectGoal.insistenceValue += this.protectGoal.changeRate;
-                if(this.protectGoal.insistenceValue > 10.0f)
+                if (this.protectGoal.insistenceValue > 10.0f)
                     this.protectGoal.insistenceValue = 100.0f;
 
                 this.beQuickGoal.insistenceValue += GOAL_CHANGING_INTERVAL * this.beQuickGoal.changeRate;
-                if(this.beQuickGoal.insistenceValue > 10.0f)
+                if (this.beQuickGoal.insistenceValue > 10.0f)
                     this.beQuickGoal.insistenceValue = 10.0f;
 
 
@@ -203,9 +204,9 @@ namespace Assets.Scripts.Agent
                 foreach (var hospital in GameObject.FindGameObjectsWithTag("Hospital"))
                     this.Actions.Add(new Test(this, hospital));
 
-                
+
             }
-            
+
             foreach (var goal in GameObject.FindGameObjectsWithTag("Goals"))
                 this.Actions.Add(new GoalsFinished(this, goal));
 
@@ -216,19 +217,20 @@ namespace Assets.Scripts.Agent
                 this.Actions.Add(new SocialDistancing(this, a));
             }
 
-            for(int i = 0; i < actionsNumber; i++){
+            for (int i = 0; i < actionsNumber; i++)
+            {
 
                 //TODO verification no more actions than those that exist
                 List<int> randomList = new List<int>();
-                int r = Random.Range(1,6);
+                int r = Random.Range(1, 6);
 
-                while(randomList.Contains(r))
-                    r = Random.Range(1,6);
+                while (randomList.Contains(r))
+                    r = Random.Range(1, 6);
 
                 randomList.Add(r);
 
-                Building.BuildingTypes actionName = (Building.BuildingTypes) r;
-                switch(actionName)
+                Building.BuildingTypes actionName = (Building.BuildingTypes)r;
+                switch (actionName)
                 {
                     case Building.BuildingTypes.Hospital:
                         foreach (var hospital in GameObject.FindGameObjectsWithTag("Hospital"))
@@ -296,7 +298,7 @@ namespace Assets.Scripts.Agent
             {
                 var actionText = "";
                 foreach (var action in this.GOAPDecisionMaking.BestActionSequence)
-                    if(action != null) actionText += "\n" + action.name;
+                    if (action != null) actionText += "\n" + action.name;
 
                 this.BestActionSequence.text = "Best Action Sequence: " + actionText;
                 this.BestActionText.text = "Best Action: " + GOAPDecisionMaking.BestAction.name;
@@ -312,11 +314,11 @@ namespace Assets.Scripts.Agent
         {
             //if the targetPosition received is the same as a previous target, then this a request for the same target
             //no need to redo the pathfinding search
-            if(!this.previousTarget.Equals(targetPosition))
+            if (!this.previousTarget.Equals(targetPosition))
             {
                 this.previousTarget = targetPosition;
                 agent.SetDestination(targetPosition);
-                
+
             }
         }
 
@@ -356,14 +358,14 @@ namespace Assets.Scripts.Agent
 
         public void GoBuilding(GameObject building, float delay)
         {
-            if(InBuildingRange(building))
+            if (InBuildingRange(building))
             {
                 List<string> newList = new List<string>(agentData.disposableActions);
 
-                foreach(string action in agentData.disposableActions)
+                foreach (string action in agentData.disposableActions)
                     if (action.Equals(building.name))
                         newList.Remove(action);
-                
+
                 agentData.disposableActions = new List<string>(newList);
                 if (!agentData.disposableActions.Any() && !agentData.goalsDone)
                 {
@@ -385,13 +387,15 @@ namespace Assets.Scripts.Agent
 
         public void Test(GameObject building)
         {
-            if(InBuildingRange(building)){
-                int r = Random.Range(0,100);
+            if (InBuildingRange(building))
+            {
+                int r = Random.Range(0, 100);
                 this.AddToDiary(" I tested myself and it came back " + agentData.infected);
 
-                if(agentData.infected)
+                if (agentData.infected)
                     agentData.tested = true;
-                else{
+                else
+                {
                     agentData.symptoms = false;
                     GameManager.symptomsNumber--;
                 }
@@ -403,7 +407,7 @@ namespace Assets.Scripts.Agent
 
         public void Quarantine(GameObject building, float delay)
         {
-            if(InBuildingRange(building))
+            if (InBuildingRange(building))
             {
                 this.AddToDiary(" I went to quarantine");
                 agentData.quarantined = true;
@@ -414,7 +418,7 @@ namespace Assets.Scripts.Agent
         }
         public void GoalsDone(GameObject building, float delay)
         {
-            if(InBuildingRange(building))
+            if (InBuildingRange(building))
             {
                 this.AddToDiary(" I finished everything");
                 StartCoroutine(WaitAction(null, delay));
@@ -425,29 +429,44 @@ namespace Assets.Scripts.Agent
         {
             StartCoroutine(Distancing(3f));
         }
+
+        int getInfectedAgentsAround()
+        {
+            int count = 0;
+
+            foreach (AgentData data in agentsAroundMeList)
+            {
+                Debug.Log("Counting");
+                if (data.infected) count++;
+            }
+            Debug.Log("Infecte");
+            return count;
+        }
+
         private bool CheckForInfection()
         {
-            int r = Random.Range(0,100);
+            int r = Random.Range(0, 100);
             float usingMask = 0;
 
-            if(agentData.usingMask)
+            if (agentData.usingMask)
+
                 usingMask = 10;
-            
-            if(agentData.quarantined){
+
+            if (agentData.quarantined)
+            {
                 /*agentData.symptoms = false;
                 agentData.infected = false;
                 agentData.quarantined = false;
                 return false;*/
                 return true;
             }
-
-            if (r < ((agentsAroundMe * GameManager.infectionProbability) + timeOfContact - usingMask))
+            if (r < ((getInfectedAgentsAround() * GameManager.infectionProbability) + timeOfContact - usingMask))
             {
-                Debug.Log((agentsAroundMe * GameManager.infectionProbability) + timeOfContact - usingMask);
+                Debug.Log((getInfectedAgentsAround() * GameManager.infectionProbability) + timeOfContact - usingMask);
                 Debug.Log(timeOfContact);
             }
 
-            return r < ((agentsAroundMe*GameManager.infectionProbability) + timeOfContact - usingMask);
+            return r < ((getInfectedAgentsAround() * GameManager.infectionProbability) + timeOfContact - usingMask);
         }
 
         private System.Collections.IEnumerator Distancing(float delay)
@@ -455,7 +474,7 @@ namespace Assets.Scripts.Agent
             doingTask = true;
             yield return new WaitForSeconds(delay);
             doingTask = false;
-            
+
             if (this.previousAction != null && previousAction.name != "SocialDistancing")
             {
                 currentAction = previousAction;
@@ -464,19 +483,20 @@ namespace Assets.Scripts.Agent
             }
             else
                 worldChanged = true;
-            
+
             agentData.socialDistance = false;
 
         }
 
-        private System.Collections.IEnumerator WaitAction(GameObject building, float delay){
-            if(building != null)
+        private System.Collections.IEnumerator WaitAction(GameObject building, float delay)
+        {
+            if (building != null)
                 building.GetComponent<Building>().numberOfPeople++;
             doingTask = true;
-            
+
             yield return new WaitForSeconds(delay);
-            
-            if(building != null)
+
+            if (building != null)
                 building.GetComponent<Building>().numberOfPeople--;
             doingTask = false;
             this.worldChanged = true;
@@ -487,7 +507,7 @@ namespace Assets.Scripts.Agent
             var distance = (obj.transform.position - this.transform.position).sqrMagnitude;
             return distance <= maximumSqrDistance;
         }
-     
+
         public bool InBuildingRange(GameObject building)
         {
             return this.CheckRange(building, 16.0f);
@@ -497,35 +517,40 @@ namespace Assets.Scripts.Agent
         {
             if (!doingTask && !agentData.goalsDone)
             {
-                if (agentData.personality.GetType() != typeof(EgocentricAgent)){
+                if (agentData.personality.GetType() != typeof(EgocentricAgent))
+                {
                     previousAction = currentAction;
                     protectGoal.insistenceValue += protectGoal.changeRate;
                     agentData.socialDistance = true;
                     worldChanged = true;
                 }
-                agentsAroundMe++;
+                var agentControl = coll.gameObject.GetComponent<AgentControl>();
+                if (agentControl) { agentsAroundMeList.Add(agentControl.agentData); }
             }
         }
 
         void OnTriggerStay(Collider coll)
         {
-            
-            if(Time.time > triggerTime && !agentData.symptoms){
+
+            if (Time.time > triggerTime && !agentData.symptoms)
+            {
                 triggerTime += Time.time + TRIGGER_INTERVAL;
-                if(!agentData.infected && CheckForInfection()){
+                if (!agentData.infected && CheckForInfection())
+                {
                     agentData.infected = true;
                     GameManager.infectedNumber++;
 
-                    int r = Random.Range(0,100);
+                    int r = Random.Range(0, 100);
 
-                    if(r <= 50){
+                    if (r <= 50)
+                    {
                         agentData.symptoms = true;
                         GameManager.symptomsNumber++;
                     }
 
                 }
 
-                if(coll.GetComponent<AgentControl>() != null && coll.GetComponent<AgentControl>().agentData.infected)
+                if (coll.GetComponent<AgentControl>() != null && coll.GetComponent<AgentControl>().agentData.infected)
                     timeOfContact += 0.5f;
             }
 
@@ -533,10 +558,11 @@ namespace Assets.Scripts.Agent
 
         void OnTriggerExit(Collider coll)
         {
-            if(agentData.personality.GetType() != typeof(EgocentricAgent))
+            if (agentData.personality.GetType() != typeof(EgocentricAgent))
                 protectGoal.insistenceValue -= protectGoal.changeRate;
 
-            agentsAroundMe--;
+            var agentControl = coll.gameObject.GetComponent<AgentControl>();
+            if (agentControl) agentsAroundMeList.Remove(agentControl.agentData);
         }
     }
 }

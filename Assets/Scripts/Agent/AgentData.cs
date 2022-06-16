@@ -1,6 +1,6 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Assets.Scripts.Algorithm.DecisionMaking.ForwardModel;
+using UnityEngine;
 
 namespace Assets.Scripts.Agent
 {
@@ -15,6 +15,7 @@ namespace Assets.Scripts.Agent
         public bool goalsDone { get; set; }
         public float time { get; set; }
         public List<string> disposableActions { get; set; }
+
 
 
         // may not be needed
@@ -73,7 +74,7 @@ namespace Assets.Scripts.Agent
 
         public bool ContainsAction(string action)
         {
-            foreach(string a in disposableActions)
+            foreach (string a in disposableActions)
                 if (a.Equals(action))
                     return true;
 
