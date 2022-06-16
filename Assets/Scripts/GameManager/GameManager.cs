@@ -34,6 +34,8 @@ namespace Assets.Scripts.GameManager
         public int egocentricPercentage;
         public int hypochondriacPercentage;
 
+        public int initialInfectedPercentage;
+
         public WorldManager worldManager;
 
         private float nextUpdateTime = 0.0f;
@@ -49,6 +51,16 @@ namespace Assets.Scripts.GameManager
         {
             agents = new GameObject[number];
             GeneratePeople(number);
+            AgentData agentData;
+            foreach (GameObject agent in agents)
+            {
+                agentData = agent.GetComponent<AgentControl>().agentData;
+                if (agentData.infected) infectedNumber++;
+                if (agentData.symptoms) symptomsNumber++;
+                if (agentData.quarantined) quarantinedNumber++;
+                if (agentData.usingMask) protectingNumber++;
+            }
+
         }
 
         public void Update()
@@ -76,7 +88,13 @@ namespace Assets.Scripts.GameManager
             int selfAwareAgents = (number * selfAwarePercentage) / 100;
             int egocentricAgents = (number * egocentricPercentage) / 100;
             int hypochondriacAgents = (number * hypochondriacPercentage) / 100;
-            
+
+            int selfAwareInfected = (selfAwareAgents * initialInfectedPercentage) / 100;
+            int egocentricInfected = (egocentricAgents * initialInfectedPercentage) / 100;
+            int hypochondriacInfected = (hypochondriacAgents * initialInfectedPercentage) / 100;
+
+            bool infectedAgent = false;
+
             worldManager.spawner();
 
             for (int i = 0; i < number; i++)
@@ -84,7 +102,7 @@ namespace Assets.Scripts.GameManager
                 GameObject agent = Instantiate(agentPrefab, new Vector3(i * 2.0f, 0, 0), Quaternion.identity);
                 agent.transform.parent = GameObject.Find("Agents").transform;
                 worldManager.spawnAgent(agent);
-
+                infectedAgent = false;
                 Personality p = null;
                 //this.initialPosition = this.character.transform.position;
 
@@ -92,22 +110,37 @@ namespace Assets.Scripts.GameManager
                 if (i < selfAwareAgents)
                 {
                     agent.GetComponent<Renderer>().material.SetColor("_Color", Color.blue);
+                    if (selfAwareInfected > 0)
+                    {
+                        infectedAgent = true;
+                        selfAwareInfected--;
+                    }
                     p = new SelfAwareAgent();
                 }
                 //egocentric
                 else if (i >= selfAwareAgents && i < selfAwareAgents + egocentricAgents)
                 {
                     agent.GetComponent<Renderer>().material.SetColor("_Color", Color.red);
+                    if (egocentricInfected > 0)
+                    {
+                        infectedAgent = true;
+                        egocentricInfected--;
+                    }
                     p = new EgocentricAgent();
                 }
                 //hypochondriac
                 else
                 {
                     agent.GetComponent<Renderer>().material.SetColor("_Color", Color.yellow);
+                    if (hypochondriacInfected > 0)
+                    {
+                        infectedAgent = true;
+                        hypochondriacInfected--;
+                    }
                     p = new HypochondriacAgent();
                 }
 
-                agent.GetComponent<AgentControl>().Init(agent, p);
+                agent.GetComponent<AgentControl>().Init(agent, p, infectedAgent);
                 this.agents[i] = agent;
             }
         }

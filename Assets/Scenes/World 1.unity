@@ -604,8 +604,9 @@ MonoBehaviour:
   selfAwarePercentage: 0
   egocentricPercentage: 100
   hypochondriacPercentage: 0
+  initialInfectedPercentage: 50
   worldManager: {fileID: 1354168337}
-  infectionProbability: 5
+  infectionProbability: 50
   symptomsProbability: 2
 --- !u!4 &356754596
 Transform:

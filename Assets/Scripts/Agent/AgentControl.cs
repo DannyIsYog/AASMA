@@ -77,12 +77,13 @@ namespace Assets.Scripts.Agent
         public float timeOfContact = 0f;
         public bool doingTask = false;
 
-        public void Init(GameObject person, Personality p)
+        public void Init(GameObject person, Personality p, bool infected)
         {
 
             //This is the actual speed of the agent
             this.agent = this.GetComponent<NavMeshAgent>();
             this.agentData = new AgentData(person, new Goal[0], p);
+            this.agentData.infected = infected;
             maxSpeed = this.agent.speed;
             playerText.text = "";
 
