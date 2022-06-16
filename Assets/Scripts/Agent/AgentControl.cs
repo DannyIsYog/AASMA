@@ -436,10 +436,8 @@ namespace Assets.Scripts.Agent
 
             foreach (AgentData data in agentsAroundMeList)
             {
-                Debug.Log("Counting");
                 if (data.infected) count++;
             }
-            Debug.Log("Infecte");
             return count;
         }
 
