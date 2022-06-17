@@ -21,6 +21,7 @@ namespace Assets.Scripts.Agent
 
         public const float DECISION_MAKING_INTERVAL = 20.0f;
         public const float GOAL_CHANGING_INTERVAL = 20.0f;
+        public const float CHECK_SYMPTOMS_INTERVAL = 1.0f;
         public const float TEST_INTERVAL = 20.0f;
         public const float TRIGGER_INTERVAL = 1.0f;
 
@@ -76,6 +77,7 @@ namespace Assets.Scripts.Agent
         private float triggerTime = 0;
         public float timeOfContact = 0f;
         public bool doingTask = false;
+        public float checkSymptomsTime = 0f;
 
         public GameObject infectedVisualIndicator;
 
@@ -117,20 +119,23 @@ namespace Assets.Scripts.Agent
 
         void Update()
         {
+            if (Time.time > checkSymptomsTime)
+            {
+                checkSymptomsTime += Time.time + CHECK_SYMPTOMS_INTERVAL;
+                int r = Random.Range(0, 100);
+                if (r < GameManager.symptomsProbability * agentData.personality.proneToSymptoms && !agentData.symptoms)
+                {
+                    agentData.symptoms = true;
+                    GameManager.symptomsNumber++;
+                }
+            }
+
             if (!init || GameManager.gameEnded || agentData.quarantined || doingTask)
                 return;
 
             //Every x amount of times we've got to update things
             if (Time.time > this.nextUpdateTime || this.worldChanged)
             {
-                int r = Random.Range(0, 100);
-
-                if (r < GameManager.symptomsProbability * agentData.personality.proneToSymptoms && !agentData.symptoms)
-                {
-                    agentData.symptoms = true;
-                    GameManager.symptomsNumber++;
-                }
-
                 this.worldChanged = false;
                 this.nextUpdateTime = Time.time + DECISION_MAKING_INTERVAL;
 
@@ -220,12 +225,12 @@ namespace Assets.Scripts.Agent
                     continue;
                 this.Actions.Add(new SocialDistancing(this, a));
             }
-
+            
+            List<int> randomList = new List<int>();
             for (int i = 0; i < actionsNumber; i++)
             {
 
                 //TODO verification no more actions than those that exist
-                List<int> randomList = new List<int>();
                 int r = Random.Range(1, 6);
 
                 while (randomList.Contains(r))
@@ -451,22 +456,10 @@ namespace Assets.Scripts.Agent
             float usingMask = 0;
 
             if (agentData.usingMask)
-
                 usingMask = 10;
 
             if (agentData.quarantined)
-            {
-                /*agentData.symptoms = false;
-                agentData.infected = false;
-                agentData.quarantined = false;
-                return false;*/
                 return true;
-            }
-            if (r < ((getInfectedAgentsAround() * GameManager.infectionProbability) + timeOfContact - usingMask))
-            {
-                Debug.Log((getInfectedAgentsAround() * GameManager.infectionProbability) + timeOfContact - usingMask);
-                Debug.Log(timeOfContact);
-            }
 
             return r < ((getInfectedAgentsAround() * GameManager.infectionProbability) + timeOfContact - usingMask);
         }
@@ -535,7 +528,8 @@ namespace Assets.Scripts.Agent
         {
 
             if (Time.time > triggerTime && !agentData.symptoms)
-            {
+            {Debug.Log("hello");
+                
                 triggerTime += Time.time + TRIGGER_INTERVAL;
                 if (!agentData.infected && CheckForInfection())
                 {

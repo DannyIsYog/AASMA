@@ -131,7 +131,7 @@ namespace Assets.Scripts.GameManager
                 //hypochondriac
                 else
                 {
-                    agent.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.yellow);
+                    agent.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.green);
                     if (hypochondriacInfected > 0)
                     {
                         infectedAgent = true;

@@ -74,7 +74,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 10
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 0.22425617, g: 0.4716981, b: 0, a: 1}
+  m_Color: {r: 0.9846988, g: 1, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -456,7 +456,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 970b0844dd2c6af41b0c6c795d512e64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controlledSpeed: 10
+  controlledSpeed: 5
   playerText: {fileID: 1742658843263746129}
   actionsNumber: 3
   init: 0
@@ -465,6 +465,7 @@ MonoBehaviour:
   testInterval: 0
   timeOfContact: 0
   doingTask: 0
+  checkSymptomsTime: 0
   infectedVisualIndicator: {fileID: 2565527318190002868}
 --- !u!54 &513467422930860536
 Rigidbody:

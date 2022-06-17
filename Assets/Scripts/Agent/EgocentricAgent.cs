@@ -16,7 +16,7 @@ namespace Assets.Scripts.Agent
             protectChangeRate = 0.5f;
             quickChangeRate = 0.2f;
 
-            proneToSymptoms = 1;
+            proneToSymptoms = 1f;
         }
 
     }

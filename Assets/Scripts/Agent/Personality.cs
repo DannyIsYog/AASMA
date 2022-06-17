@@ -19,5 +19,9 @@ namespace Assets.Scripts.Agent{
 
         protected abstract void SetPersonality();
 
+        protected Personality()
+        {
+            this.SetPersonality();
+        }
     }
 }

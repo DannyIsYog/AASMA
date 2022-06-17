@@ -44,10 +44,7 @@ public class WorldManager : MonoBehaviour
     {
         int children = spawnPointsParent.transform.childCount;
         for (int i = 0; i < children; ++i)
-        {
             spawnPoints.Add(spawnPointsParent.transform.GetChild(i).gameObject);
-            Debug.Log("Adding");
-        }
     }
 
     public void spawnAgent(GameObject agent)
