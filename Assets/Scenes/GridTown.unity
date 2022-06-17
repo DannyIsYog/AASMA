@@ -872,9 +872,9 @@ MonoBehaviour:
   goalsNumber: 0
   number: 20
   agentPrefab: {fileID: 8636273427996616605, guid: cef8d0a338f132740a1a291a745057c0, type: 3}
-  selfAwarePercentage: 100
-  egocentricPercentage: 0
-  hypochondriacPercentage: 0
+  selfAwarePercentage: 50
+  egocentricPercentage: 25
+  hypochondriacPercentage: 25
   initialInfectedPercentage: 10
   worldManager: {fileID: 1354168337}
   infectionProbability: 20
