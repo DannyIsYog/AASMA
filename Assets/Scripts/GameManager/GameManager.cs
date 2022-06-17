@@ -109,7 +109,7 @@ namespace Assets.Scripts.GameManager
                 //self-aware
                 if (i < selfAwareAgents)
                 {
-                    agent.GetComponent<Renderer>().material.SetColor("_Color", Color.blue);
+                    agent.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.blue);
                     if (selfAwareInfected > 0)
                     {
                         infectedAgent = true;
@@ -120,7 +120,7 @@ namespace Assets.Scripts.GameManager
                 //egocentric
                 else if (i >= selfAwareAgents && i < selfAwareAgents + egocentricAgents)
                 {
-                    agent.GetComponent<Renderer>().material.SetColor("_Color", Color.red);
+                    agent.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.red);
                     if (egocentricInfected > 0)
                     {
                         infectedAgent = true;
@@ -131,7 +131,7 @@ namespace Assets.Scripts.GameManager
                 //hypochondriac
                 else
                 {
-                    agent.GetComponent<Renderer>().material.SetColor("_Color", Color.yellow);
+                    agent.GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.yellow);
                     if (hypochondriacInfected > 0)
                     {
                         infectedAgent = true;
