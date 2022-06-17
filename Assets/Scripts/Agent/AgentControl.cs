@@ -77,6 +77,8 @@ namespace Assets.Scripts.Agent
         public float timeOfContact = 0f;
         public bool doingTask = false;
 
+        public GameObject infectedVisualIndicator;
+
         public void Init(GameObject person, Personality p, bool infected)
         {
 
@@ -84,6 +86,7 @@ namespace Assets.Scripts.Agent
             this.agent = this.GetComponent<NavMeshAgent>();
             this.agentData = new AgentData(person, new Goal[0], p);
             this.agentData.infected = infected;
+            if (infected) infectedVisualIndicator.SetActive(true);
             maxSpeed = this.agent.speed;
             playerText.text = "";
 
@@ -538,6 +541,7 @@ namespace Assets.Scripts.Agent
                 {
                     agentData.infected = true;
                     GameManager.infectedNumber++;
+                    infectedVisualIndicator.SetActive(true);
 
                     int r = Random.Range(0, 100);
 
