@@ -26,15 +26,6 @@ namespace Assets.Scripts.Agent
         public const float TRIGGER_INTERVAL = 1.0f;
 
         //UI Variables
-        private Text DoTasksGoalText;
-        private Text ProtectGoalText;
-        private Text BeQuickGoalText;
-        private Text DiscontentmentText;
-        private Text TotalProcessingTimeText;
-        private Text BestDiscontentmentText;
-        private Text ProcessedActionsText;
-        private Text BestActionText;
-        private Text BestActionSequence;
         private Text DiaryText;
 
         public GameManager.GameManager GameManager { get; private set; }
@@ -80,6 +71,8 @@ namespace Assets.Scripts.Agent
         public float checkSymptomsTime = 0f;
 
         public GameObject infectedVisualIndicator;
+        public GameObject symptomsVisualIndicator;
+
 
         public void Init(GameObject person, Personality p, bool infected)
         {
@@ -88,23 +81,18 @@ namespace Assets.Scripts.Agent
             this.agent = this.GetComponent<NavMeshAgent>();
             this.agentData = new AgentData(person, new Goal[0], p);
             this.agentData.infected = infected;
-            if (infected) infectedVisualIndicator.SetActive(true);
+            
+            if (infected) 
+                infectedVisualIndicator.SetActive(true);
+            if (this.agentData.symptoms) 
+                symptomsVisualIndicator.SetActive(true);
+
             maxSpeed = this.agent.speed;
             playerText.text = "";
 
             GameManager = GameObject.Find("GameManager").GetComponent<GameManager.GameManager>();
 
             // Initializing UI Text
-            this.DoTasksGoalText = GameObject.Find("DoTasksGoal").GetComponent<Text>();
-            this.ProtectGoalText = GameObject.Find("ProtectGoal").GetComponent<Text>();
-            this.BeQuickGoalText = GameObject.Find("BeQuickGoal").GetComponent<Text>();
-
-            this.DiscontentmentText = GameObject.Find("Discontentment").GetComponent<Text>();
-            this.TotalProcessingTimeText = GameObject.Find("ProcessTime").GetComponent<Text>();
-            this.BestDiscontentmentText = GameObject.Find("BestDis").GetComponent<Text>();
-            this.ProcessedActionsText = GameObject.Find("ProcComb").GetComponent<Text>();
-            this.BestActionText = GameObject.Find("BestAction").GetComponent<Text>();
-            this.BestActionSequence = GameObject.Find("BestActionSequence").GetComponent<Text>();
             this.DiaryText = GameObject.Find("DiaryText").GetComponent<Text>();
 
             // generate agent goals
@@ -123,10 +111,12 @@ namespace Assets.Scripts.Agent
             {
                 checkSymptomsTime += Time.time + CHECK_SYMPTOMS_INTERVAL;
                 int r = Random.Range(0, 100);
-                if (r < GameManager.symptomsProbability * agentData.personality.proneToSymptoms && !agentData.symptoms)
+                if (r < GameManager.symptomsProbability * agentData.personality.proneToSymptoms && (!agentData.symptoms || agentData.personality.GetType() == typeof(HypochondriacAgent)))
                 {
                     agentData.symptoms = true;
                     GameManager.symptomsNumber++;
+                    if (this.agentData.symptoms) 
+                        symptomsVisualIndicator.SetActive(true);
                 }
             }
 
@@ -155,12 +145,6 @@ namespace Assets.Scripts.Agent
                 this.beQuickGoal.insistenceValue += GOAL_CHANGING_INTERVAL * this.beQuickGoal.changeRate;
                 if (this.beQuickGoal.insistenceValue > 10.0f)
                     this.beQuickGoal.insistenceValue = 10.0f;
-
-
-                this.DoTasksGoalText.text = "Do Tasks: " + this.doTasksGoal.insistenceValue.ToString("F1");
-                this.ProtectGoalText.text = "Protect: " + this.protectGoal.insistenceValue.ToString("F1");
-                this.BeQuickGoalText.text = "Be Quick: " + this.beQuickGoal.insistenceValue.ToString("F1");
-                this.DiscontentmentText.text = "Discontentment: " + this.CalculateDiscontentment().ToString("F1");
 
                 this.currentAction = null;
                 this.GOAPDecisionMaking.InitializeDecisionMakingProcess();
@@ -299,23 +283,12 @@ namespace Assets.Scripts.Agent
                     this.currentAction = action;
             }
 
-            this.TotalProcessingTimeText.text = "Process. Time: " + this.GOAPDecisionMaking.TotalProcessingTime.ToString("F");
-            this.BestDiscontentmentText.text = "Best Discontentment: " + this.GOAPDecisionMaking.BestDiscontentmentValue.ToString("F");
-            this.ProcessedActionsText.text = "Act. comb. processed: " + this.GOAPDecisionMaking.TotalActionCombinationsProcessed;
-
             if (this.GOAPDecisionMaking.BestAction != null)
             {
                 var actionText = "";
                 foreach (var action in this.GOAPDecisionMaking.BestActionSequence)
                     if (action != null) actionText += "\n" + action.name;
 
-                this.BestActionSequence.text = "Best Action Sequence: " + actionText;
-                this.BestActionText.text = "Best Action: " + GOAPDecisionMaking.BestAction.name;
-            }
-            else
-            {
-                this.BestActionSequence.text = "Best Action Sequence:\nNone";
-                this.BestActionText.text = "Best Action: \n Node";
             }
         }
 
@@ -399,7 +372,8 @@ namespace Assets.Scripts.Agent
             if (InBuildingRange(building))
             {
                 int r = Random.Range(0, 100);
-                this.AddToDiary(" I tested myself and it came back " + agentData.infected);
+                
+                this.AddToDiary(agentData.personality.GetType().Name +  " tested and is " + (agentData.infected ? "positive" : "negative"));
 
                 if (agentData.infected)
                     agentData.tested = true;
@@ -407,6 +381,8 @@ namespace Assets.Scripts.Agent
                 {
                     agentData.symptoms = false;
                     GameManager.symptomsNumber--;
+                    if (this.agentData.symptoms) 
+                        symptomsVisualIndicator.SetActive(false);
                 }
 
                 testInterval = Time.time + TEST_INTERVAL;
@@ -418,7 +394,7 @@ namespace Assets.Scripts.Agent
         {
             if (InBuildingRange(building))
             {
-                this.AddToDiary(" I went to quarantine");
+                this.AddToDiary(agentData.personality.GetType().Name + " went to quarantine");
                 agentData.quarantined = true;
                 StartCoroutine(WaitAction(null, delay));
                 doingTask = true;
@@ -429,7 +405,7 @@ namespace Assets.Scripts.Agent
         {
             if (InBuildingRange(building))
             {
-                this.AddToDiary(" I finished everything");
+                this.AddToDiary(agentData.personality.GetType().Name + " agent finished everything");
                 StartCoroutine(WaitAction(null, delay));
             }
         }
@@ -444,9 +420,9 @@ namespace Assets.Scripts.Agent
             int count = 0;
 
             foreach (AgentData data in agentsAroundMeList)
-            {
-                if (data.infected) count++;
-            }
+                if (data.infected) 
+                    count++;
+            
             return count;
         }
 
@@ -461,6 +437,7 @@ namespace Assets.Scripts.Agent
             if (agentData.quarantined)
                 return true;
 
+            Debug.Log("Infection probability " + ((getInfectedAgentsAround() * GameManager.infectionProbability) + timeOfContact - usingMask));
             return r < ((getInfectedAgentsAround() * GameManager.infectionProbability) + timeOfContact - usingMask);
         }
 
@@ -528,8 +505,7 @@ namespace Assets.Scripts.Agent
         {
 
             if (Time.time > triggerTime && !agentData.symptoms)
-            {Debug.Log("hello");
-                
+            {
                 triggerTime += Time.time + TRIGGER_INTERVAL;
                 if (!agentData.infected && CheckForInfection())
                 {
@@ -543,6 +519,8 @@ namespace Assets.Scripts.Agent
                     {
                         agentData.symptoms = true;
                         GameManager.symptomsNumber++;
+                        if (this.agentData.symptoms) 
+                            symptomsVisualIndicator.SetActive(true);
                     }
 
                 }

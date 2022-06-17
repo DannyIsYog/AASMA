@@ -7,7 +7,7 @@ namespace Assets.Scripts.Agent
     public class HypochondriacAgent : Personality
     {
         protected override void SetPersonality() {
-            tasksValue = 5f;
+            tasksValue = 2f;
             protectValue = 10f;
             quickValue = 2f;
 
